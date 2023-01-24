@@ -1,9 +1,9 @@
 import { derived, get, writable } from 'svelte/store'
-import type { IJwt, IUser, ILoginParams } from '@my-org/types'
+import type { IJwt, User, ILoginParams } from '@my-org/types'
 
 import { persistedWritable } from './persist'
 
-export const user = persistedWritable<IUser | null>(null, {
+export const user = persistedWritable<User | null>(null, {
   key: 'user',
   storage: 'session'
 })

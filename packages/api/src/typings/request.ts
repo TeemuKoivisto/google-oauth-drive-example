@@ -1,4 +1,4 @@
-import type { IUser } from '@my-org/types'
+import type { User } from '@my-org/types'
 import type { Request, Response } from 'express'
 import type { ParamsDictionary } from 'express-serve-static-core'
 
@@ -8,7 +8,7 @@ export type IRequest<
 > = Request<P, {}, B, {}>
 
 type AuthLocals = {
-  user: IUser
+  user: User
 }
 
 export type AuthRequest<

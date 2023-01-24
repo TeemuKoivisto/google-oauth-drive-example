@@ -3,24 +3,16 @@ const { sign, verify } = pkg
 
 import { config } from '$common'
 
-import { Maybe, IUser } from '@my-org/types'
-import { ILoginJwt, IResetPasswordJwt } from '$typings/auth'
+import { Maybe, User } from '@my-org/types'
+import { ILoginJwt } from '$typings/auth'
 
-export function generateLoginPayload(user: IUser) {
+export function generateLoginPayload(user: User) {
   const expires = Date.now() + 86400000 * 14 // 2 weeks
   const payload: ILoginJwt = { expires, user }
   return {
     expires,
     token: sign(payload, config.JWT.SECRET, { algorithm: 'HS512', expiresIn: '2w' })
   }
-}
-
-export function generatePasswordResetJwt(userId: string) {
-  const payload: IResetPasswordJwt = { userId }
-  return sign(payload, config.JWT.SECRET, {
-    algorithm: 'HS512',
-    expiresIn: '48h'
-  })
 }
 
 function decryptToken<T>(token: string): Maybe<T> {
@@ -32,4 +24,3 @@ function decryptToken<T>(token: string): Maybe<T> {
 }
 
 export const decryptLoginToken = (token: string) => decryptToken<ILoginJwt>(token)
-export const decryptPasswordResetToken = (token: string) => decryptToken<IResetPasswordJwt>(token)

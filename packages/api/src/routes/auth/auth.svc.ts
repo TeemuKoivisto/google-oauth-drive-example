@@ -1,7 +1,7 @@
-import { Maybe, ILoginParams, IUser } from '@my-org/types'
+import { Maybe, ILoginParams, User } from '@my-org/types'
 
 export const authService = {
-  loginUser: async ({ email, password }: ILoginParams): Promise<Maybe<IUser>> => {
+  loginUser: async ({ email, password }: ILoginParams): Promise<Maybe<User>> => {
     if (email !== 'me@example.com' || password !== 'asdfasdf') {
       return { err: 'Invalid credentials', code: 401 }
     }

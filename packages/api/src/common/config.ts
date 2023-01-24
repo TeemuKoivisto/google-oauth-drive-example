@@ -30,5 +30,9 @@ export const config = {
   },
   JWT: {
     SECRET: process.env.JWT_SECRET || 'verylongrandomstring'
+  },
+  GOOGLE: {
+    CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
+    CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || ''
   }
 }
