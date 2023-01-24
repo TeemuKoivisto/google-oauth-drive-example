@@ -1,5 +1,6 @@
 /// <reference types="@types/gapi" />;
 /// <reference types="@maxim_mazurok/gapi.client.drive"" />;
+
 import { derived, get, writable } from 'svelte/store'
 import { persistedWritable } from './persist'
 
@@ -119,9 +120,9 @@ export const gapiActions = {
   },
   async apiFiles() {
     const token = get(accessToken)
-    if (!token) {
-      await this.loadDrive()
-    }
+    // if (!token) {
+    //   await this.loadDrive()
+    // }
     const fetched = await fetch(`${API_URL}/files?token=${token}`)
     const data = await fetched.json()
     console.log('data ', data)

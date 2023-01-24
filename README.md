@@ -2,6 +2,8 @@
 
 This example shows how to create a basic Google OAuth flow with Google Drive integration as of 2023
 
+Based on https://developers.google.com/drive/api/quickstart/nodejs
+
 ## Prerequisites
 
 Node.js >=16 & pnpm installed globally. Google Cloud account.
@@ -14,7 +16,7 @@ Node.js >=16 & pnpm installed globally. Google Cloud account.
 4. Click `CREATE CREDENTIALS` and pick `OAuth client ID`
 5. Pick `Web application`
 6. To `Authorised JavaScript origins` add: `http://localhost:5174`
-7. To `Authorised redirect URIs` add: `http://localhost:5174/callback`
+7. To `Authorised redirect URIs` add: `http://localhost:5274/callback`
 8. Click `CREATE`. Download your credentials
 9. Copy `.env-example` in `packages/api` to `packages/api/.env` and replace `CLIENT_ID` & `CLIENT_SECRET` with your values
 10. Enable Google Drive API: https://console.cloud.google.com/marketplace/product/google/drive.googleapis.com

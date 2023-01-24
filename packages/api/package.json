@@ -27,6 +27,7 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
+    "@google-cloud/local-auth": "^2.1.1",
     "@my-org/types": "workspace:*",
     "bcrypt": "5.1.0",
     "cors": "^2.8.5",
