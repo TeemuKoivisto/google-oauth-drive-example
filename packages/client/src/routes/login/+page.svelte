@@ -22,6 +22,7 @@
       loginError = resp.err
     } else {
       loginError = null
+      goto('/files')
     }
   }
 </script>

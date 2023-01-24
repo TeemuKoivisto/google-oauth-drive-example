@@ -6,6 +6,7 @@ const getEnv = (env: string | undefined) => {
 }
 
 export const API_URL = getEnv(import.meta.env.VITE_API_URL)
+export const GOOGLE_CLIENT_ID = getEnv(import.meta.env.VITE_GOOGLE_CLIENT_ID)
 export const DEV = import.meta.env.DEV
 // More about SvelteKit's default env variables https://vitejs.dev/guide/env-and-mode.html
 // TODO rather than importing DEV everywhere, create logger that checks for DEV

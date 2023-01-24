@@ -14,8 +14,10 @@
     "@iconify-icons/fe": "^1.2.3",
     "@iconify-icons/feather": "^1.2.3",
     "@iconify-icons/mdi": "^1.2.36",
+    "@maxim_mazurok/gapi.client.drive": "^3.0.20220731",
     "@sveltejs/adapter-static": "1.0.5",
     "@sveltejs/kit": "1.1.4",
+    "@types/gapi": "^0.0.43",
     "cross-fetch": "^3.1.5",
     "postcss": "^8.4.20",
     "postcss-load-config": "^4.0.1",
@@ -28,6 +30,7 @@
     "vite": "^4.0.3"
   },
   "dependencies": {
+    "@googleapis/drive": "^4.0.1",
     "@my-org/types": "workspace:*",
     "@iconify/svelte": "^3.0.1",
     "autoprefixer": "^10.4.13",
