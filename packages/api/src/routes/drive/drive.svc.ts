@@ -1,5 +1,6 @@
 import { Auth, drive_v3, google } from 'googleapis'
 import { authenticate } from '@google-cloud/local-auth'
+import type { JSONClient } from 'google-auth-library/build/src/auth/googleauth'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -7,6 +8,7 @@ import { config } from '$common/config'
 
 import { Maybe } from '@my-org/types'
 import type { GaxiosPromise } from 'googleapis/build/src/apis/abusiveexperiencereport'
+import { OAuth2Client } from 'google-auth-library'
 
 const SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
 const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json')
@@ -23,6 +25,16 @@ async function saveCredentials(client: Auth.OAuth2Client) {
     refresh_token: client.credentials.refresh_token
   })
   await fs.writeFile(TOKEN_PATH, payload)
+}
+
+async function loadSavedCredentialsIfExist() {
+  try {
+    const content = await fs.readFile(TOKEN_PATH)
+    const credentials = JSON.parse(content.toString())
+    return google.auth.fromJSON(credentials)
+  } catch (err) {
+    return null
+  }
 }
 
 export const driveService = {
@@ -51,12 +63,12 @@ export const driveService = {
     })
     return drive.files.list({})
   },
-  async authorize() {
-    // let client = await loadSavedCredentialsIfExist()
-    // if (client) {
-    //   return client
-    // }
-    const client = await authenticate({
+  async authorize(): Promise<JSONClient | OAuth2Client> {
+    let client: JSONClient | OAuth2Client | null = await loadSavedCredentialsIfExist()
+    if (client) {
+      return client
+    }
+    client = await authenticate({
       scopes: SCOPES,
       keyfilePath: CREDENTIALS_PATH
     })
@@ -65,7 +77,9 @@ export const driveService = {
     }
     return client
   },
-  async listFiles3(authClient: Auth.OAuth2Client) {
+  async listFiles3(
+    authClient: JSONClient | Auth.OAuth2Client
+  ): Promise<Maybe<drive_v3.Schema$File[]>> {
     console.log('listFiles3')
     const drive = google.drive({ version: 'v3', auth: authClient })
     const res = await drive.files.list({
@@ -73,14 +87,14 @@ export const driveService = {
       fields: 'nextPageToken, files(id, name)'
     })
     const files = res.data.files
-    if (files?.length === 0) {
+    if (files?.length === 0 || !files) {
       console.log('No files found.')
-      return
+      return { err: 'No files found ', code: 400 }
     }
     console.log('Files:')
-    files!.map(file => {
+    files.map(file => {
       console.log(`${file.name} (${file.id})`)
     })
-    return files
+    return { data: files }
   }
 }

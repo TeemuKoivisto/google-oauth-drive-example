@@ -1,6 +1,6 @@
 <script lang="ts">
   import { isLoggedIn } from '$stores/auth'
-  import { gapiActions } from '$stores/gapi'
+  import { files, gapiActions } from '$stores/gapi'
   import { goto } from '$app/navigation'
   import Button from '$elements/Button.svelte'
   import { onMount } from 'svelte'
@@ -34,6 +34,11 @@
     <Button class="bg-red-500 text-white" on:click={clientFiles}>List in client</Button>
     <Button class="my-8 bg-red-500 text-white" on:click={apiFiles}>List from API</Button>
   </header>
+  <ul>
+    {#each $files as file}
+      <li>{file.name}</li>
+    {/each}
+  </ul>
 </section>
 
 <style>

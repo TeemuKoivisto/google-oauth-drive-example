@@ -4,6 +4,10 @@
 import { derived, get, writable } from 'svelte/store'
 import { persistedWritable } from './persist'
 
+import * as fileApi from '$api/file'
+
+import type { DriveFile } from '@my-org/types'
+
 import { API_URL, GOOGLE_CLIENT_ID } from '../config'
 
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly'
@@ -16,6 +20,7 @@ export const accessToken = persistedWritable<string>('', {
   storage: 'session'
 })
 export const renderedButton = writable<HTMLElement | null>(null)
+export const files = writable<DriveFile[]>([])
 
 let authLoaded = false,
   gapiLoaded = false,
@@ -119,12 +124,10 @@ export const gapiActions = {
     console.log('data ', data)
   },
   async apiFiles() {
-    const token = get(accessToken)
-    // if (!token) {
-    //   await this.loadDrive()
-    // }
-    const fetched = await fetch(`${API_URL}/files?token=${token}`)
-    const data = await fetched.json()
-    console.log('data ', data)
+    const resp = await fileApi.listFiles()
+    if ('data' in resp) {
+      files.set(resp.data.files)
+    }
+    console.log('data ', resp)
   }
 }
