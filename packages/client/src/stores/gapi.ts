@@ -1,5 +1,7 @@
 /// <reference types="@types/gapi" />;
 /// <reference types="@maxim_mazurok/gapi.client.drive"" />;
+import { derived, get, writable } from 'svelte/store'
+import { persistedWritable } from './persist'
 
 import { API_URL, GOOGLE_CLIENT_ID } from '../config'
 
@@ -8,11 +10,20 @@ const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly'
 
 // https://developers.google.com/drive/api/v3/reference
 
+export const accessToken = persistedWritable<string>('', {
+  key: 'access-token',
+  storage: 'session'
+})
+export const renderedButton = writable<HTMLElement | null>(null)
+
 let authLoaded = false,
   gapiLoaded = false,
   access_token = ''
 
 export const gapiActions = {
+  setRenderContainer(el: HTMLElement) {
+    renderedButton.set(el)
+  },
   appendScript(id: string, src: string): Promise<boolean> {
     return new Promise(resolve => {
       const gapiAuthScript = document.createElement('script')
@@ -39,6 +50,7 @@ export const gapiActions = {
             callback: res => {
               console.log('auth res', res)
               access_token = res.access_token
+              accessToken.set(res.access_token)
               resolve(true)
             }
           })
@@ -52,7 +64,7 @@ export const gapiActions = {
     }
     return false
   },
-  async loadDrive(el: HTMLElement) {
+  async loadDrive() {
     try {
       if (!gapiLoaded) {
         gapiLoaded = await this.appendScript(
@@ -71,10 +83,13 @@ export const gapiActions = {
               resolve(res)
             }
           })
-          window.google.accounts.id.renderButton(el, {
-            size: 'medium',
-            type: 'standard'
-          })
+          const el = get(renderedButton)
+          if (el) {
+            window.google.accounts.id.renderButton(el, {
+              size: 'medium',
+              type: 'standard'
+            })
+          }
         })
       }
       return true
@@ -83,11 +98,11 @@ export const gapiActions = {
     }
     return false
   },
-  async load(el: HTMLElement) {
+  async load() {
     try {
       const auth = await this.loadAuth()
       if (auth) {
-        await this.loadDrive(el)
+        await this.loadDrive()
       }
     } catch (err) {
       console.error(err)
@@ -99,6 +114,15 @@ export const gapiActions = {
         Authorization: `Bearer ${access_token}`
       }
     })
+    const data = await fetched.json()
+    console.log('data ', data)
+  },
+  async apiFiles() {
+    const token = get(accessToken)
+    if (!token) {
+      await this.loadDrive()
+    }
+    const fetched = await fetch(`${API_URL}/files?token=${token}`)
     const data = await fetched.json()
     console.log('data ', data)
   }

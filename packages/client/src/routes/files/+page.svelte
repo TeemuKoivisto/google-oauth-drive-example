@@ -3,6 +3,7 @@
   import { gapiActions } from '$stores/gapi'
   import { goto } from '$app/navigation'
   import Button from '$elements/Button.svelte'
+  import { onMount } from 'svelte'
 
   let loginEl: HTMLElement
 
@@ -12,9 +13,17 @@
     }
   }
 
-  async function fetchFiles() {
-    await gapiActions.load(loginEl)
+  onMount(() => {
+    gapiActions.setRenderContainer(loginEl)
+  })
+
+  async function clientFiles() {
+    await gapiActions.load()
     await gapiActions.scanDriveFiles()
+  }
+
+  async function apiFiles() {
+    await gapiActions.apiFiles()
   }
 </script>
 
@@ -22,7 +31,8 @@
   <header class="flex flex-col items-center mt-8">
     <h1 class="my-3 text-5xl font-bold flex items-center">List Drive files</h1>
     <div class="my-8" bind:this={loginEl} />
-    <Button class="bg-red-500 text-white" on:click={fetchFiles}>List</Button>
+    <Button class="bg-red-500 text-white" on:click={clientFiles}>List in client</Button>
+    <Button class="my-8 bg-red-500 text-white" on:click={apiFiles}>List from API</Button>
   </header>
 </section>
 
