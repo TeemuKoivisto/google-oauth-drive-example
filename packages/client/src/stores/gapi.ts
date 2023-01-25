@@ -8,13 +8,23 @@ import * as fileApi from '$api/file'
 
 import type { DriveFile } from '@my-org/types'
 
-import { API_URL, GOOGLE_CLIENT_ID } from '../config'
+import { GOOGLE_CLIENT_ID } from '../config'
 
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly'
-// const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive";
 
 // https://developers.google.com/drive/api/v3/reference
 
+interface GoogleCredentials {
+  access_token: string
+  expires_in: number
+  scope: string
+  token_type: string
+}
+
+export const googleCredentials = persistedWritable<GoogleCredentials | null>(null, {
+  key: 'google-credentials',
+  storage: 'session'
+})
 export const accessToken = persistedWritable<string>('', {
   key: 'access-token',
   storage: 'session'
@@ -57,6 +67,13 @@ export const gapiActions = {
               console.log('auth res', res)
               access_token = res.access_token
               accessToken.set(res.access_token)
+              const body = res as any
+              googleCredentials.set({
+                access_token: res.access_token,
+                expires_in: body['expires_in'] || 1,
+                scope: body['scope'] || 'https://www.googleapis.com/auth/drive.readonly',
+                token_type: body['token_type'] || 'Bearer'
+              })
               resolve(true)
             }
           })
@@ -114,17 +131,23 @@ export const gapiActions = {
       console.error(err)
     }
   },
-  async scanDriveFiles() {
-    const fetched = await fetch(' https://www.googleapis.com/drive/v3/files', {
+  async listInClient() {
+    const fetched = await fetch('https://www.googleapis.com/drive/v3/files', {
       headers: {
         Authorization: `Bearer ${access_token}`
       }
     })
     const data = await fetched.json()
-    console.log('data ', data)
+    console.log('client data ', data)
   },
-  async apiFiles() {
-    const resp = await fileApi.listFiles()
+  async listFromAPI(apiOnly = true) {
+    let resp
+    if (apiOnly) {
+      resp = await fileApi.listFiles('', 0)
+    } else {
+      const cred = get(googleCredentials)
+      resp = await fileApi.listFiles(cred?.access_token || '', cred?.expires_in || 0)
+    }
     if ('data' in resp) {
       files.set(resp.data.files)
     }

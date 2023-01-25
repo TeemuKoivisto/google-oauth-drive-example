@@ -1,6 +1,13 @@
 import { drive_v3 } from 'googleapis'
 
-export type DriveFile = drive_v3.Schema$File
+export type DriveFile = {
+  id: string
+  name: string
+}
+export interface IListFilesQuery {
+  token?: string
+  expires?: number
+}
 export interface IListFilesResponse {
-  files: drive_v3.Schema$File[]
+  files: DriveFile[]
 }
