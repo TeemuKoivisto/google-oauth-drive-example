@@ -8,3 +8,11 @@
 html {
   font-size: 16px;
 }
+
+body {
+  @apply bg-gray-900;
+}
+
+* {
+  @apply text-white;
+}

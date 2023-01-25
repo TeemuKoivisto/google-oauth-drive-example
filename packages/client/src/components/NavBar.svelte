@@ -12,7 +12,7 @@
   }
 </script>
 
-<div class="py-4 bg-red-500">
+<div class="py-4 bg-gray-700">
   <nav class="flex items-center px-12 py-1 justify-between xs:flex-row xs:items-start">
     <div>
       <a data-sveltekit:prefetch href="/" class="hover:underline text-white"> Example </a>

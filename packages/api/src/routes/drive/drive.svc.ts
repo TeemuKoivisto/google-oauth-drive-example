@@ -79,24 +79,6 @@ export const driveService = {
     console.log(client.credentials)
     return client
   },
-  async listFiles3(authClient: JSONClient | Auth.OAuth2Client): Promise<Maybe<DriveFile[]>> {
-    console.log('listFiles3')
-    const drive = google.drive({ version: 'v3', auth: authClient })
-    const res = await drive.files.list({
-      pageSize: 10,
-      fields: 'nextPageToken, files(id, name)'
-    })
-    const files = res.data.files
-    if (files?.length === 0 || !files) {
-      console.log('No files found.')
-      return { err: 'No files found ', code: 400 }
-    }
-    console.log('Files:')
-    files.map(file => {
-      console.log(`${file.name} (${file.id})`)
-    })
-    return { data: files.map(f => ({ id: f.id || '', name: f.name || '' })) }
-  },
   createClient(): Auth.OAuth2Client {
     return new Auth.OAuth2Client(
       config.GOOGLE.CLIENT_ID,
@@ -111,17 +93,19 @@ export const driveService = {
     })
     const res = await drive.files.list({
       pageSize: 10,
-      fields: 'nextPageToken, files(id, name)'
+      fields: 'nextPageToken, files(id, name, kind, mimeType)'
     })
     const files = res.data.files
     if (files?.length === 0 || !files) {
-      console.log('No files found.')
       return { err: 'No files found ', code: 400 }
     }
-    console.log('Files:')
-    files.map(file => {
-      console.log(`${file.name} (${file.id})`)
-    })
-    return { data: files.map(f => ({ id: f.id || '', name: f.name || '' })) }
+    return {
+      data: files.map(f => ({
+        id: f.id || '',
+        name: f.name || '',
+        kind: f.kind || '',
+        mimeType: f.mimeType || ''
+      }))
+    }
   }
 }

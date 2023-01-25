@@ -6,7 +6,7 @@ import { persistedWritable } from './persist'
 
 import * as fileApi from '$api/file'
 
-import type { DriveFile } from '@my-org/types'
+import type { Maybe, DriveFile } from '@my-org/types'
 
 import { GOOGLE_CLIENT_ID } from '../config'
 
@@ -25,16 +25,11 @@ export const googleCredentials = persistedWritable<GoogleCredentials | null>(nul
   key: 'google-credentials',
   storage: 'session'
 })
-export const accessToken = persistedWritable<string>('', {
-  key: 'access-token',
-  storage: 'session'
-})
 export const renderedButton = writable<HTMLElement | null>(null)
 export const files = writable<DriveFile[]>([])
 
 let authLoaded = false,
-  gapiLoaded = false,
-  access_token = ''
+  gapiLoaded = false
 
 export const gapiActions = {
   setRenderContainer(el: HTMLElement) {
@@ -55,18 +50,13 @@ export const gapiActions = {
       if (!authLoaded) {
         authLoaded = await this.appendScript('gapi-auth', 'https://accounts.google.com/gsi/client')
       }
-      console.log('loaded', authLoaded)
-      console.log('scopes', google.accounts.oauth2.hasGrantedAllScopes(DRIVE_SCOPE))
       if (authLoaded && !google.accounts.oauth2.hasGrantedAllScopes(DRIVE_SCOPE)) {
-        console.log('loadAuth')
         await new Promise(resolve => {
           const client = google.accounts.oauth2.initTokenClient({
             client_id: GOOGLE_CLIENT_ID,
             scope: DRIVE_SCOPE,
             callback: res => {
-              console.log('auth res', res)
-              access_token = res.access_token
-              accessToken.set(res.access_token)
+              // console.log('auth res', res)
               const body = res as any
               googleCredentials.set({
                 access_token: res.access_token,
@@ -78,7 +68,6 @@ export const gapiActions = {
             }
           })
           client.requestAccessToken()
-          console.log('client in promise', client)
         })
       }
       return true
@@ -87,58 +76,67 @@ export const gapiActions = {
     }
     return false
   },
-  async loadDrive() {
-    try {
-      if (!gapiLoaded) {
-        gapiLoaded = await this.appendScript(
-          'gapi-platform',
-          'https://accounts.google.com/gsi/client'
-        )
-      }
-      if (gapiLoaded) {
-        console.log('loadDrive')
-        await new Promise(resolve => {
-          window.google.accounts.id.initialize({
-            client_id: GOOGLE_CLIENT_ID,
-            callback: async (res: CredentialResponse) => {
-              console.log('cb res', res)
-              access_token = res.credential || ''
-              resolve(res)
-            }
-          })
-          const el = get(renderedButton)
-          if (el) {
-            window.google.accounts.id.renderButton(el, {
-              size: 'medium',
-              type: 'standard'
-            })
-          }
-        })
-      }
-      return true
-    } catch (err) {
-      console.error(err)
+  // async loadDrive() {
+  //   try {
+  //     if (!gapiLoaded) {
+  //       gapiLoaded = await this.appendScript(
+  //         'gapi-platform',
+  //         'https://accounts.google.com/gsi/client'
+  //       )
+  //     }
+  //     if (gapiLoaded) {
+  //       console.log('loadDrive')
+  //       await new Promise(resolve => {
+  //         window.google.accounts.id.initialize({
+  //           client_id: GOOGLE_CLIENT_ID,
+  //           callback: async (res: CredentialResponse) => {
+  //             console.log('cb res', res)
+  //             // access_token = res.credential || ''
+  //             resolve(res)
+  //           }
+  //         })
+  //         const el = get(renderedButton)
+  //         if (el) {
+  //           window.google.accounts.id.renderButton(el, {
+  //             size: 'medium',
+  //             type: 'standard'
+  //           })
+  //         }
+  //       })
+  //     }
+  //     return true
+  //   } catch (err) {
+  //     console.error(err)
+  //   }
+  //   return false
+  // },
+  // async load() {
+  //   try {
+  //     const auth = await this.loadAuth()
+  //     if (auth) {
+  //       await this.loadDrive()
+  //     }
+  //   } catch (err) {
+  //     console.error(err)
+  //   }
+  // },
+  async listInClient(): Promise<Maybe<DriveFile[]>> {
+    const cred = get(googleCredentials)
+    const token = cred?.access_token || ''
+    if (!token) {
+      return { err: 'Not authenticated', code: 401 }
     }
-    return false
-  },
-  async load() {
-    try {
-      const auth = await this.loadAuth()
-      if (auth) {
-        await this.loadDrive()
-      }
-    } catch (err) {
-      console.error(err)
-    }
-  },
-  async listInClient() {
     const fetched = await fetch('https://www.googleapis.com/drive/v3/files', {
       headers: {
-        Authorization: `Bearer ${access_token}`
+        Authorization: `Bearer ${token}`
       }
     })
-    const data = await fetched.json()
-    console.log('client data ', data)
+    const resp = await fetched.json()
+    if ('files' in resp) {
+      files.set(resp.files)
+    }
+    console.log('client data ', resp)
+    return { data: resp }
   },
   async listFromAPI(apiOnly = true) {
     let resp
@@ -151,6 +149,7 @@ export const gapiActions = {
     if ('data' in resp) {
       files.set(resp.data.files)
     }
-    console.log('data ', resp)
+    console.log('api data ', resp)
+    return resp
   }
 }
