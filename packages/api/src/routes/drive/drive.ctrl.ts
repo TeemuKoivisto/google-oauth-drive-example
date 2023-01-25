@@ -24,7 +24,7 @@ export const listDriveFiles = async (
       }
       client.setCredentials(credentials)
     } else {
-      client = await driveService.authorize()
+      client = await driveService.promptOAuth()
     }
     const resp = await driveService.listFiles(client)
     if ('err' in resp) {

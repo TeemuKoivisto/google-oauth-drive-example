@@ -20,11 +20,8 @@ export default {
       $utils: resolve('./src/utils')
     }
   },
-  optimizeDeps: {
-    // Avoids the extreme bundling times with big deps (over 60s)
-    // https://github.com/sveltejs/kit/issues/2612#issuecomment-944922140
-    // include: Object.keys(pkg.dependencies || {}).filter(
-    //   d => d !== 'tailwindcss' && d !== '@iconify/svelte' && d !== 'svelte-dnd-action'
-    // )
+  server: {
+    port: 5174,
+    strictPort: true
   }
 }

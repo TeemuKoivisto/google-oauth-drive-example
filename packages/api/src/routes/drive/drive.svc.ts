@@ -28,7 +28,6 @@ async function saveCredentials(client: Auth.OAuth2Client) {
 }
 
 async function loadSavedCredentialsIfExist() {
-  console.log('loadCredentials')
   try {
     const content = await fs.readFile(TOKEN_PATH)
     const credentials = JSON.parse(content.toString())
@@ -39,32 +38,11 @@ async function loadSavedCredentialsIfExist() {
 }
 
 export const driveService = {
-  listFiles0(token: string): GaxiosPromise<drive_v3.Schema$FileList> {
-    const drive = new drive_v3.Drive({
-      auth: token
-    })
-    return drive.files.list({})
-  },
-  async listFiles2(token: string): GaxiosPromise<drive_v3.Schema$FileList> {
-    const cli = new Auth.OAuth2Client(config.GOOGLE.CLIENT_ID, config.GOOGLE.CLIENT_SECRET)
-    cli.setCredentials({
-      access_token: token
-    })
-    const url = cli.generateAuthUrl({
-      // 'online' (default) or 'offline' (gets refresh_token)
-      // access_type: 'offline',
-      // If you only need one scope you can pass it as a string
-      scope: ['https://www.googleapis.com/auth/drive.readonly']
-    })
+  async promptOAuth(): Promise<JSONClient | OAuth2Client> {
+    // You could save the credentials as token.json but that is kinda pointless as they are configured only for
+    // a SINGLE user. Why it's done so in the example https://developers.google.com/drive/api/quickstart/nodejs
+    // I don't know but it's not how you should do it.
 
-    const resp = await cli.getAccessToken()
-    console.log('resp', resp)
-    const drive = new drive_v3.Drive({
-      auth: cli
-    })
-    return drive.files.list({})
-  },
-  async authorize(): Promise<JSONClient | OAuth2Client> {
     // let client: JSONClient | OAuth2Client | null = await loadSavedCredentialsIfExist()
     // if (client) {
     //   return client
@@ -76,7 +54,6 @@ export const driveService = {
     // if (client.credentials) {
     //   await saveCredentials(client)
     // }
-    console.log(client.credentials)
     return client
   },
   createClient(): Auth.OAuth2Client {
