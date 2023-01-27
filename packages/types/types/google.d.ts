@@ -13,3 +13,11 @@ export interface IListFilesQuery {
 export interface IListFilesResponse {
   files: DriveFile[]
 }
+export interface IImportFilesRequest {
+  token: string
+  expires: number
+  files: DriveFile[]
+}
+export interface IImportFilesResponse {
+  result: Maybe<boolean>[]
+}

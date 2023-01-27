@@ -27,6 +27,8 @@ export const googleCredentials = persistedWritable<GoogleCredentials | null>(nul
 })
 export const renderedButton = writable<HTMLElement | null>(null)
 export const files = writable<DriveFile[]>([])
+export const selectedFiles = writable<boolean[]>([])
+export const allSelected = derived(selectedFiles, sf => sf.length > 0 && sf.every(v => v))
 
 let authLoaded = false,
   gapiLoaded = false
@@ -134,6 +136,7 @@ export const gapiActions = {
     const resp = await fetched.json()
     if ('files' in resp) {
       files.set(resp.files)
+      selectedFiles.set(resp.files.map(() => true))
     }
     console.log('client data ', resp)
     return { data: resp }
@@ -141,15 +144,48 @@ export const gapiActions = {
   async listFromAPI(apiOnly = true) {
     let resp
     if (apiOnly) {
-      resp = await fileApi.listFiles('', 0)
+      resp = await fileApi.listFiles({ token: '', expires: 0 })
     } else {
-      const cred = get(googleCredentials)
-      resp = await fileApi.listFiles(cred?.access_token || '', cred?.expires_in || 0)
+      const { access_token, expires_in } = get(googleCredentials) || {}
+      const query = {
+        token: access_token || '',
+        expires: expires_in || 0
+      }
+      resp = await fileApi.listFiles(query)
     }
     if ('data' in resp) {
       files.set(resp.data.files)
+      selectedFiles.set(resp.data.files.map(() => true))
     }
     console.log('api data ', resp)
     return resp
+  },
+  selectFiles(files: number[], selected = true) {
+    selectedFiles.update(old =>
+      old.map((prev, idx) => {
+        if (selected && files.includes(idx)) {
+          return true
+        } else if (!selected && files.includes(idx)) {
+          return false
+        }
+        return prev
+      })
+    )
+  },
+  async importFiles() {
+    const { access_token, expires_in } = get(googleCredentials) || {}
+    if (!access_token || !expires_in) {
+      return { err: 'Unauthenticated', code: 401 }
+    }
+    const selected = get(selectedFiles)
+    const imported = get(files).filter((_, idx) => selected[idx])
+    const resp = await fileApi.importFiles({
+      token: access_token,
+      expires: expires_in,
+      files: imported
+    })
+    if ('data' in resp) {
+    }
+    console.log('imported data ', resp)
   }
 }
