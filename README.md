@@ -16,11 +16,11 @@ Used resources:
 
 There are multitude of errors I received while making this. Some of them that I can still remember are:
 
-### `The incoming JSON object does not contain a client_email field`
+`The incoming JSON object does not contain a client_email field`
 
 This means you are trying to use service account and haven't used your service account email eg ``
 
-### `Error: No access, refresh token, API key or refresh handler callback is set.`
+`Error: No access, refresh token, API key or refresh handler callback is set.`
 
 This one threw me off for a long while. It means you haven't configured your credentials properly eg you've only provided an `access_token` but not the full payload:
 
@@ -34,6 +34,10 @@ This one threw me off for a long while. It means you haven't configured your cre
 ```
 
 Or something like that.
+
+`Daily Limit for Unauthenticated Use Exceeded Google Api Drive`
+
+I received this error because I used the access_token I received in the client in the API without adding the other parameters (eg `expires_in`) properly. Kinda weird.
 
 ## Prerequisites
 
@@ -62,5 +66,5 @@ Node.js >=16 & pnpm installed globally. Google Cloud account.
 4. Go to `http://localhost:5174/login`
 5. Click `Log in`
 6. Click any of the buttons
-7. Follow consent screen, bybass the warning if it says the account is not trusted
+7. Follow consent screen, bybass the warning if it says "Google hasn't verified this account"
 8. You should see a list of files
