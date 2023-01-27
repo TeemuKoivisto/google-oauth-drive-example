@@ -7,7 +7,7 @@ import path from 'path'
 import { config } from '$common/config'
 
 import { Maybe, DriveFile } from '@my-org/types'
-import type { GaxiosPromise } from 'googleapis/build/src/apis/abusiveexperiencereport'
+import { GaxiosError } from 'gaxios'
 import { OAuth2Client } from 'google-auth-library'
 
 const SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
@@ -34,6 +34,30 @@ async function loadSavedCredentialsIfExist() {
     return google.auth.fromJSON(credentials)
   } catch (err) {
     return null
+  }
+}
+
+async function download(drive: drive_v3.Drive, file: DriveFile): Promise<Maybe<boolean>> {
+  let resp
+  try {
+    resp = await drive.files.get({ fileId: file.id, alt: 'media' })
+    // console.log('fetched')
+    const data = resp.data as any
+    await fs.writeFile(path.join(process.cwd(), 'tmp/', file.name), data)
+    // console.log('written')
+    return { data: resp.data.size || data.length || 0 }
+  } catch (err: any) {
+    let msg, code
+    if (err instanceof GaxiosError) {
+      // Gaxios returns error messages in non-standard form which is easiest to parse with hacky code like this
+      const stack = err.stack || ''
+      const start = stack.slice(stack.indexOf("message: '") + "message: '".length)
+      msg = start.slice(0, stack.indexOf("',") - "',".length - 1)
+    }
+    try {
+      code = parseInt(err?.code)
+    } catch (e) {}
+    return { err: msg || err, code: code || 500 }
   }
 }
 
@@ -69,14 +93,16 @@ export const driveService = {
       auth: authClient
     })
     const res = await drive.files.list({
-      pageSize: 10,
-      q: '"root" in parents',
+      pageSize: 100,
+      // q: '"root" in parents',
+      q: '"root" in parents and (mimeType contains "image/" or mimeType = "application/vnd.google-apps.folder")',
       fields: 'nextPageToken, files(id, name, kind, mimeType, size)'
     })
     const files = res.data.files
     if (files?.length === 0 || !files) {
       return { err: 'No files found ', code: 400 }
     }
+    // console.log('list res: ', res.data)
     return {
       data: files.map(f => ({
         id: f.id || '',
@@ -85,17 +111,6 @@ export const driveService = {
         mimeType: f.mimeType || '',
         size: f.size || ''
       }))
-    }
-  },
-  async download(drive: drive_v3.Drive, file: DriveFile): Promise<Maybe<boolean>> {
-    try {
-      const resp = await drive.files.get({ fileId: file.id, alt: 'media' })
-      const data = resp.data as any
-      await fs.writeFile(path.join(process.cwd(), 'tmp/', file.name), data)
-      return { data: resp.data.size || data.length || 0 }
-    } catch (err: any) {
-      console.error(err)
-      return { err: err?.message || err, code: err?.code || 500 }
     }
   },
   async downloadFiles(
@@ -107,20 +122,6 @@ export const driveService = {
       auth: authClient,
       http2: true
     })
-    console.log('files', files)
-    async function download(file: DriveFile): Promise<Maybe<boolean>> {
-      try {
-        const resp = await drive.files.get({ fileId: file.id, alt: 'media' })
-        console.log('fetched')
-        const data = resp.data as any
-        await fs.writeFile(path.join(process.cwd(), 'tmp/', file.name), data)
-        console.log('written')
-        return { data: resp.data.size || data.length || 0 }
-      } catch (err: any) {
-        console.error(err)
-        return { err: err?.message || err, code: err?.code || 500 }
-      }
-    }
-    return Promise.all(files.map(f => download(f)))
+    return Promise.all(files.map(f => download(drive, f)))
   }
 }
