@@ -34,6 +34,7 @@
     "@my-org/types": "workspace:*",
     "@iconify/svelte": "^3.0.1",
     "autoprefixer": "^10.4.13",
+    "svelte-tree-view": "workspace:*",
     "tailwindcss": "^3.2.4"
   }
 }

@@ -37,6 +37,57 @@ async function loadSavedCredentialsIfExist() {
   }
 }
 
+async function fetchDriveFiles(
+  drive: drive_v3.Drive,
+  files: drive_v3.Schema$File[],
+  nextPageToken?: string | undefined,
+  iters = 0
+): Promise<drive_v3.Schema$File[]> {
+  const res = await drive.files.list({
+    pageSize: 100,
+    q: 'mimeType contains "image/" or mimeType = "application/vnd.google-apps.folder"',
+    pageToken: nextPageToken,
+    orderBy: 'modifiedTime',
+    fields:
+      'nextPageToken, files(id, name, kind, mimeType, driveId, teamDriveId, fileExtension, modifiedTime, parents, size, imageMediaMetadata, videoMediaMetadata, webViewLink)'
+  })
+  if (res.data.files) {
+    files = [...files, ...res.data.files]
+  }
+  if (res.data.nextPageToken && iters < 5) {
+    return fetchDriveFiles(drive, files, res.data.nextPageToken, iters + 1)
+  }
+  return files
+}
+
+interface TreeNode {
+  id: string
+  value: drive_v3.Schema$File
+  parentId: string | null
+  children: string[]
+}
+
+function createFileTree(
+  currentNode: TreeNode | undefined,
+  allFiles: drive_v3.Schema$File[],
+  treeMap: Map<string, TreeNode>
+) {
+  if (!currentNode) return
+  const found = allFiles.filter(f => f.parents?.includes(currentNode.id))
+  console.log('found', found)
+  currentNode.children = found.map(f => f.id || '')
+  found.forEach(f => {
+    const node: TreeNode = {
+      value: f,
+      id: f.id || '',
+      parentId: currentNode.id,
+      children: []
+    }
+    treeMap.set(node.id, node)
+    createFileTree(node, allFiles, treeMap)
+  })
+}
+
 async function download(drive: drive_v3.Drive, file: DriveFile): Promise<Maybe<boolean>> {
   let resp
   try {
@@ -87,30 +138,69 @@ export const driveService = {
       'http://localhost:5274/callback'
     )
   },
-  async listFiles(authClient: JSONClient | Auth.OAuth2Client): Promise<Maybe<DriveFile[]>> {
+  async listFiles(
+    authClient: JSONClient | Auth.OAuth2Client
+  ): Promise<Maybe<{ rootFile: { id: string; name: string }; files: DriveFile[] }>> {
     const drive = google.drive({
       version: 'v3',
       auth: authClient
     })
-    const res = await drive.files.list({
-      pageSize: 100,
-      // q: '"root" in parents',
-      q: '"root" in parents and (mimeType contains "image/" or mimeType = "application/vnd.google-apps.folder")',
-      fields: 'nextPageToken, files(id, name, kind, mimeType, size)'
+    // const res = await drive.files.list({
+    //   pageSize: 100,
+    //   // q: '"root" in parents',
+    //   // q: '"root" in parents and (mimeType contains "image/" or mimeType = "application/vnd.google-apps.folder")',
+    //   // q: '"root" in parents and (mimeType contains "image/")',
+    //   q: 'mimeType contains "image/" or mimeType = "application/vnd.google-apps.folder"',
+    //   fields: 'nextPageToken, files(id, name, kind, mimeType, fileExtension, modifiedTime, parents, size, imageMediaMetadata, videoMediaMetadata, webViewLink)'
+    // })
+    const fetchedRootFile = await drive.files.get({
+      fileId: 'root',
+      fields: 'id, name'
     })
-    const files = res.data.files
+    const rootNode: TreeNode = {
+      value: fetchedRootFile.data,
+      id: fetchedRootFile.data.id || '',
+      parentId: null,
+      children: []
+    }
+    console.log('rootNode ', rootNode)
+
+    const files = await fetchDriveFiles(drive, [])
+    // const files = res.data.files
     if (files?.length === 0 || !files) {
       return { err: 'No files found ', code: 400 }
     }
-    // console.log('list res: ', res.data)
+
+    // const treeMap = new Map()
+    // treeMap.set(rootNode.id, rootNode)
+    // createFileTree(rootNode, files, treeMap)
+    // console.log('files', files)
+    // console.log('\n\ntreeMap ', treeMap)
+    // console.log('asdf', res.data.files?.reduce((acc, c) => `${acc},${c.parents}`, ''))
+    // @ts-ignore
+    // console.log('asdf', res.data.files?.reduce((acc, c) => [...acc, c.parents], []))
+    // @ts-ignore
+    // console.log('asdf', res.data.files?.reduce((acc, c) => [...acc, c.imageMediaMetadata], []))
     return {
-      data: files.map(f => ({
-        id: f.id || '',
-        name: f.name || '',
-        kind: f.kind || '',
-        mimeType: f.mimeType || '',
-        size: f.size || ''
-      }))
+      data: {
+        rootFile: {
+          id: fetchedRootFile.data.id || '',
+          name: fetchedRootFile.data.name || 'My drive'
+        },
+        files: files.map(f => ({
+          id: f.id || '',
+          name: f.name || '',
+          kind: f.kind || '',
+          mimeType: f.mimeType || '',
+          parentId: f.parents ? f.parents[0] : null,
+          size: f.size ? parseInt(f.size) : 0,
+          fileExtension: f.fileExtension || undefined,
+          modifiedTime: f.modifiedTime || undefined,
+          imageMediaMetadata: f.imageMediaMetadata || undefined,
+          videoMediaMetadata: f.videoMediaMetadata || undefined,
+          webViewLink: f.webViewLink || undefined
+        }))
+      }
     }
   },
   async downloadFiles(

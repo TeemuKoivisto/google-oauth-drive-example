@@ -35,9 +35,7 @@ export const listDriveFiles = async (
     if ('err' in resp) {
       return next(new CustomError(resp.err, resp.code))
     }
-    res.json({
-      files: resp.data
-    })
+    res.json(resp.data)
   } catch (err) {
     next(err)
   }

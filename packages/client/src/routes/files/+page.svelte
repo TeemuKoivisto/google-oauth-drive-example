@@ -6,6 +6,7 @@
   import { goto } from '$app/navigation'
   import Button from '$elements/Button.svelte'
   import Dropdown from '$elements/Dropdown.svelte'
+  import FileTree from '$components/file-tree/FileTree.svelte'
 
   let loginEl: HTMLElement
 
@@ -118,6 +119,7 @@
         />
       </div>
     </div>
+    <FileTree />
     <table class="overflow-x-auto w-full text-sm text-left text-gray-500 dark:text-gray-400">
       <thead class="text-xs text-gray-900 dark:text-gray-400">
         <tr>
