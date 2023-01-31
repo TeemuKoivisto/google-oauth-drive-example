@@ -7,6 +7,10 @@
 
   import { fileTree, rootFile } from '$stores/gapi'
 
+  function isDriveFile(obj: any): obj is DriveFile {
+    return typeof obj === 'object' && 'id' in obj
+  }
+
   function isFileRoot(obj: any): obj is FileRoot {
     return typeof obj === 'object' && 'isRoot' in obj
   }
@@ -17,8 +21,7 @@
         [val.my_drive.name, val.my_drive] as [string, any],
         [val.shared.name, val.shared] as [string, any]
       ]
-    } else if (type === 'object') {
-      // @ts-ignore
+    } else if (type === 'object' && isDriveFile(val)) {
       const children = $fileTree.get(val.id) || []
       return children.map((f: DriveFile) => [f.name, f] as [string, DriveFile])
     }
@@ -26,7 +29,7 @@
   }
 </script>
 
-<div class="p-4 tree-view-wrapper">
+<div class="my-4 tree-view-wrapper">
   <TreeView
     data={$rootFile}
     nodeComponent={CustomNode}

@@ -107,8 +107,10 @@ importers:
       '@sveltejs/adapter-static': 1.0.5
       '@sveltejs/kit': 1.1.4
       '@types/gapi': ^0.0.43
+      '@types/lodash.debounce': ^4.0.7
       autoprefixer: ^10.4.13
       cross-fetch: ^3.1.5
+      lodash.debounce: ^4.0.8
       postcss: ^8.4.20
       postcss-load-config: ^4.0.1
       sass: ^1.57.1
@@ -125,6 +127,7 @@ importers:
       '@iconify/svelte': 3.0.1_svelte@3.55.1
       '@my-org/types': link:../types
       autoprefixer: 10.4.13_postcss@8.4.21
+      lodash.debounce: 4.0.8
       svelte-tree-view: link:../svelte-tree-view
       tailwindcss: 3.2.4_postcss@8.4.21
     devDependencies:
@@ -135,6 +138,7 @@ importers:
       '@sveltejs/adapter-static': 1.0.5_@sveltejs+kit@1.1.4
       '@sveltejs/kit': 1.1.4_svelte@3.55.1+vite@4.0.4
       '@types/gapi': 0.0.43
+      '@types/lodash.debounce': 4.0.7
       cross-fetch: 3.1.5
       postcss: 8.4.21
       postcss-load-config: 4.0.1_postcss@8.4.21
@@ -814,6 +818,16 @@ packages:
     resolution: {integrity: sha512-272FMnFGzAVMGtu9tkr29hRL6bZj4Zs1KZNeHLnKqAvp06tAIcarTMwOh8/8bz4FmKRcMxZhZNeUAQsNLoiPhg==}
     dependencies:
       '@types/node': 18.11.18
+    dev: true
+
+  /@types/lodash.debounce/4.0.7:
+    resolution: {integrity: sha512-X1T4wMZ+gT000M2/91SYj0d/7JfeNZ9PeeOldSNoE/lunLeQXKvkmIumI29IaKMotU/ln/McOIvgzZcQ/3TrSA==}
+    dependencies:
+      '@types/lodash': 4.14.191
+    dev: true
+
+  /@types/lodash/4.14.191:
+    resolution: {integrity: sha512-BdZ5BCCvho3EIXw6wUCXHe7rS53AIDPLE+JzwgT+OsJk53oBfbSmZZ7CX4VaRoN78N+TJpFi9QPlfIVNmJYWxQ==}
     dev: true
 
   /@types/mime/3.0.1:
@@ -3047,6 +3061,10 @@ packages:
     dependencies:
       p-locate: 5.0.0
     dev: true
+
+  /lodash.debounce/4.0.8:
+    resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
+    dev: false
 
   /lodash.merge/4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}

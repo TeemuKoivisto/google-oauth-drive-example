@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte'
   import Icon from '@iconify/svelte/dist/OfflineIcon.svelte'
   import folder from '@iconify-icons/feather/folder.js'
   import file from '@iconify-icons/feather/file.js'
@@ -6,8 +7,12 @@
   import gdrive from '@iconify-icons/mdi/google-drive.js'
   import shared from '@iconify-icons/mdi/folder-shared-outline.js'
 
+  import debounce from 'lodash.debounce'
+
   import type { TreeNode, TreeViewProps } from 'svelte-tree-view'
   import type { DriveFile, MyDrive, SharedFiles } from '@my-org/types'
+
+  type HoverStatus = 'inactive' | 'entered' | 'active'
 
   export let node: TreeNode<DriveFile | MyDrive | SharedFiles>,
     props: Omit<TreeViewProps, 'data'>,
@@ -18,11 +23,13 @@
 
   let nodeKey = node.key,
     checked = false,
+    hoverStatus: HoverStatus = 'inactive',
     containerElement: HTMLElement | null = null,
     icon: any
 
   $: hasChildren = node.children.length > 0
   $: value = node.value
+  $: isImage = value.mimeType?.slice(0, 6) === 'image/'
   $: {
     if (value.kind === '__my-drive__') {
       icon = gdrive
@@ -30,10 +37,44 @@
       icon = shared
     } else if (value.mimeType === 'application/vnd.google-apps.folder') {
       icon = folder
-    } else if (value.mimeType?.slice(0, 6) === 'image/') {
+    } else if (isImage) {
       icon = image
     } else {
       icon = file
+    }
+  }
+
+  onMount(() => {
+    if (isImage) {
+      containerElement?.addEventListener('mouseover', handleMouseOver)
+      containerElement?.addEventListener('mouseout', handleMouseOut)
+      return () => {
+        containerElement?.removeEventListener('mouseover', handleMouseOver)
+        containerElement?.removeEventListener('mouseout', handleMouseOut)
+      }
+    }
+  })
+
+  const debouncedSetHover = debounce(() => {
+    if (hoverStatus === 'entered') {
+      hoverStatus = 'active'
+    }
+  }, 250)
+
+  function handleMouseOver() {
+    hoverStatus = 'entered'
+    return debouncedSetHover()
+  }
+
+  const handleMouseOut = () => {
+    hoverStatus = 'inactive'
+  }
+
+  function handleClick() {
+    if (isImage) {
+      console.log('select')
+    } else {
+      handleToggleCollapse(node)
     }
   }
 
@@ -52,47 +93,58 @@
   }
 </script>
 
-<div
-  class="file-node flex w-full h-[28px] py-2 px-4"
-  tabindex="-1"
-  title={nodeKey}
-  on:click={() => handleToggleCollapse(node)}
-  bind:this={containerElement}
-  role="presentation"
->
-  <div class="flex items-center truncate">
-    <div class="flex items-center justify-center" style:padding-right={`${node.depth * 1}em`}>
-      <input class="w-4 h-4" type="checkbox" {checked} on:change={() => (checked = !checked)} />
-    </div>
-    {#if hasChildren}
-      <button
-        class={`arrow-btn ${node.collapsed ? 'collapsed' : ''}`}
-        on:click={() => handleToggleCollapse(node)}
-      >
-        ▶
-      </button>
-    {:else}
-      <div class="arrow-btn invisible">▶</div>
-    {/if}
-    <button class="w-[16px]" on:click={() => handleToggleCollapse(node)}>
-      <Icon {icon} width={20} />
-    </button>
-    <button class="ml-4 pr-4 text-left text-white truncate">{nodeKey}</button>
+<div class="flex w-full h-[28px]" bind:this={containerElement}>
+  <div class="flex items-center justify-center pr-4">
+    <input class="w-4 h-4" type="checkbox" {checked} on:change={() => (checked = !checked)} />
   </div>
-  <div class="flex items-center">
-    {#if node.value.fileExtension}
-      <div class="extension h-6 px-2 flex items-center uppercase">{node.value.fileExtension}</div>
+  <div class="relative" style:padding-left={`${node.depth * 1}em`}>
+    {#if value?.thumbnailLink}
+      <div
+        class="w-max h-auto absolute z-10 rounded"
+        class:hidden={hoverStatus !== 'active'}
+        style:top="30px"
+        style:left="0px"
+      >
+        <img class="w-max h-auto" src={value.thumbnailLink} alt="Thumbnail" />
+      </div>
     {/if}
-    {#if node.value.size && node.value.size > 0}
-      <div class="ml-4 w-20 text-right">{formatSize(node.value.size)}</div>
-    {/if}
+  </div>
+  <div
+    class="relative py-2 px-4 py-0.5 flex items-center justify-between flex-grow cursor-pointer rounded truncate hover:bg-gray-800"
+    title={nodeKey}
+    on:click={handleClick}
+    role="presentation"
+  >
+    <div class="flex items-center truncate">
+      {#if hasChildren}
+        <button
+          class={`arrow-btn ${node.collapsed ? 'collapsed' : ''}`}
+          on:click={() => handleToggleCollapse(node)}
+        >
+          ▶
+        </button>
+      {:else}
+        <div class="arrow-btn invisible">▶</div>
+      {/if}
+      <div class="w-[16px]">
+        <Icon {icon} width={20} />
+      </div>
+      <button class="ml-4 pr-4 text-left text-white truncate">{nodeKey}</button>
+    </div>
+    <div class="flex items-center">
+      {#if node.value.fileExtension}
+        <div class="extension h-6 px-2 flex items-center uppercase">{node.value.fileExtension}</div>
+      {/if}
+      {#if node.value.size && node.value.size > 0}
+        <div class="ml-4 w-20 text-right">{formatSize(node.value.size)}</div>
+      {/if}
+    </div>
   </div>
 </div>
 
 <style lang="scss">
   .file-node {
     color: var(--tree-view-base0D);
-    @apply py-0.5 cursor-pointer flex border border-transparent justify-between;
     &:hover {
       @apply bg-gray-800;
     }

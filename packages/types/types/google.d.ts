@@ -10,6 +10,7 @@ export interface MyDrive {
   mimeType?: string
   size?: number
   fileExtension?: string
+  thumbnailLink?: string
 }
 export interface SharedFiles {
   id: 'shared-files'
@@ -18,6 +19,7 @@ export interface SharedFiles {
   mimeType?: string
   size?: number
   fileExtension?: string
+  thumbnailLink?: string
 }
 export interface DriveFile {
   id: string
@@ -30,7 +32,7 @@ export interface DriveFile {
   modifiedTime?: string
   imageMediaMetadata?: any
   videoMediaMetadata?: any
-  webViewLink?: string
+  thumbnailLink?: string
 }
 
 // GET /files?token=string&expires=number
