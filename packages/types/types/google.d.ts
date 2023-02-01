@@ -35,21 +35,25 @@ export interface DriveFile {
   thumbnailLink?: string
 }
 
-// GET /files?token=string&expires=number
+// GET /files?token=string
 export interface IListFilesQuery {
   token?: string
-  expires?: number
 }
 export interface IListFilesResponse {
   rootFile: { id: string; name: string }
   files: DriveFile[]
 }
 
-// POST /files/import
+// POST /files/import?token=string
+export interface ImportedFile {
+  id: string
+  name: string
+  size: number
+  fileExtension?: string
+}
 export interface IImportFilesRequest {
   token: string
-  expires: number
-  files: DriveFile[]
+  files: ImportedFile[]
 }
 export interface IImportFilesResponse {
   result: Maybe<boolean>[]

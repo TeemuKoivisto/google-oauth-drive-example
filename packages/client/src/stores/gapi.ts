@@ -149,7 +149,7 @@ export const gapiActions = {
   async listFromAPI(apiOnly = true) {
     let resp
     if (apiOnly) {
-      resp = await fileApi.listFiles({ token: '', expires: 0 })
+      resp = await fileApi.listFiles({ token: '' })
     } else {
       const { access_token, expires_in } = get(googleCredentials) || {}
       const query = {
@@ -226,19 +226,26 @@ export const gapiActions = {
     selectedFiles.set(newSelected)
   },
   async importFiles() {
-    const { access_token, expires_in } = get(googleCredentials) || {}
-    if (!access_token || !expires_in) {
+    const { access_token } = get(googleCredentials) || {}
+    if (!access_token) {
       return { err: 'Unauthenticated', code: 401 }
     }
-    // const selected = get(selectedFiles)
-    // const imported = get(files).filter((_, idx) => selected[idx])
-    // const resp = await fileApi.importFiles({
-    //   token: access_token,
-    //   expires: expires_in,
-    //   files: imported
-    // })
-    // if ('data' in resp) {
-    // }
-    // console.log('imported data ', resp)
+    const selected = get(selectedFiles)
+    const imported = get(files)
+      .filter(f => selected.get(f.id))
+      .map(f => ({
+        id: f.id,
+        name: f.name,
+        size: f.size,
+        fileExtension:
+          f.mimeType !== 'application/vnd.google-apps.folder' ? f.fileExtension : undefined
+      }))
+    const resp = await fileApi.importFiles({
+      token: access_token,
+      files: imported
+    })
+    if ('data' in resp) {
+    }
+    console.log('imported data ', resp)
   }
 }

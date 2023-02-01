@@ -2,13 +2,14 @@ import { Auth, drive_v3, google } from 'googleapis'
 import { authenticate } from '@google-cloud/local-auth'
 import type { JSONClient } from 'google-auth-library/build/src/auth/googleauth'
 import fs from 'fs/promises'
+import { Http2Stream } from 'http2'
 import path from 'path'
 
 import { config } from '$common/config'
 
-import { Maybe, DriveFile } from '@my-org/types'
+import { Maybe, DriveFile, ImportedFile } from '@my-org/types'
 import { GaxiosError } from 'gaxios'
-import { OAuth2Client } from 'google-auth-library'
+import { Credentials, OAuth2Client } from 'google-auth-library'
 
 const SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
 const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json')
@@ -60,17 +61,24 @@ async function fetchDriveFiles(
   return files
 }
 
-async function download(drive: drive_v3.Drive, file: DriveFile): Promise<Maybe<boolean>> {
+async function download(
+  drive: drive_v3.Drive,
+  file: ImportedFile
+): Promise<Maybe<{ size: number }>> {
   let resp
   try {
-    resp = await drive.files.get({ fileId: file.id, alt: 'media' })
-    // console.log('fetched')
-    const data = resp.data as any
+    resp = await drive.files.get({ fileId: file.id, alt: 'media' }, { responseType: 'stream' })
+    // console.log('fetched ', resp)
+    const data = resp.data as any as Http2Stream
     await fs.writeFile(path.join(process.cwd(), 'tmp/', file.name), data)
-    // console.log('written')
-    return { data: resp.data.size || data.length || 0 }
+    return {
+      data: {
+        size: file.size || 0
+      }
+    }
   } catch (err: any) {
     let msg, code
+    console.error(err)
     if (err instanceof GaxiosError) {
       // Gaxios returns error messages in non-standard form which is easiest to parse with hacky code like this
       const stack = err.stack || ''
@@ -80,7 +88,7 @@ async function download(drive: drive_v3.Drive, file: DriveFile): Promise<Maybe<b
     try {
       code = parseInt(err?.code)
     } catch (e) {}
-    return { err: msg || err, code: code || 500 }
+    return { err: msg || err, code: code || resp?.status || 500 }
   }
 }
 
@@ -103,12 +111,16 @@ export const driveService = {
     // }
     return client
   },
-  createClient(): Auth.OAuth2Client {
-    return new Auth.OAuth2Client(
+  createClient(credentials?: Auth.Credentials): Auth.OAuth2Client {
+    const client = new Auth.OAuth2Client(
       config.GOOGLE.CLIENT_ID,
       config.GOOGLE.CLIENT_SECRET,
       'http://localhost:5274/callback'
     )
+    if (credentials) {
+      client.setCredentials(credentials)
+    }
+    return client
   },
   async listFiles(
     authClient: JSONClient | Auth.OAuth2Client
@@ -148,9 +160,9 @@ export const driveService = {
     }
   },
   async downloadFiles(
-    files: DriveFile[],
+    files: ImportedFile[],
     authClient: Auth.OAuth2Client
-  ): Promise<Maybe<boolean>[]> {
+  ): Promise<Maybe<{ size: number }>[]> {
     const drive = google.drive({
       version: 'v3',
       auth: authClient,

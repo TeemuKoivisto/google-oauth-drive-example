@@ -17,17 +17,14 @@ export const listDriveFiles = async (
   next: NextFunction
 ) => {
   try {
-    const { token, expires } = req.query
+    const { token } = req.query
     let client
-    if (token && expires) {
-      client = driveService.createClient()
-      const credentials = {
+    if (token) {
+      client = driveService.createClient({
         access_token: token,
         scope: 'https://www.googleapis.com/auth/drive.readonly',
-        token_type: 'Bearer',
-        expires_in: expires
-      }
-      client.setCredentials(credentials)
+        token_type: 'Bearer'
+      })
     } else {
       client = await driveService.promptOAuth()
     }
@@ -47,15 +44,12 @@ export const importDriveFiles = async (
   next: NextFunction
 ) => {
   try {
-    const { files, token, expires } = req.body
-    const client = driveService.createClient()
-    const credentials = {
+    const { files, token } = req.body
+    const client = driveService.createClient({
       access_token: token,
       scope: 'https://www.googleapis.com/auth/drive.readonly',
-      token_type: 'Bearer',
-      expires_in: expires
-    }
-    client.setCredentials(credentials)
+      token_type: 'Bearer'
+    })
     const result = await driveService.downloadFiles(files, client)
     res.json({ result })
   } catch (err) {
