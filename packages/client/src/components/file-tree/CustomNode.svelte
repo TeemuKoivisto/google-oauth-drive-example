@@ -105,9 +105,9 @@
   }
 </script>
 
-<div class="flex w-full h-[28px]" bind:this={containerElement}>
-  <div class="flex items-center justify-center pr-4">
-    <input class="w-4 h-4" type="checkbox" {checked} on:click={handleSelect} />
+<div class="flex w-full h-[28px]">
+  <div class="flex items-center justify-center">
+    <input class="w-[18px] h-[18px]" type="checkbox" {checked} on:click={handleSelect} />
   </div>
   <div class="relative" style:padding-left={`${node.depth * 1}em`}>
     {#if value?.thumbnailLink}
@@ -130,6 +130,7 @@
     title={nodeKey}
     on:click={handleClick}
     role="presentation"
+    bind:this={containerElement}
   >
     <div class="flex items-center truncate">
       {#if hasChildren}
@@ -146,6 +147,11 @@
         <Icon {icon} width={20} />
       </div>
       <button class="ml-4 pr-4 text-left text-white truncate">{nodeKey}</button>
+      <div
+        class="spinner-border animate-spin inline-block w-4 h-4 border-1 rounded-full"
+        role="status"
+        aria-label="Loading"
+      />
     </div>
     <div class="flex items-center">
       {#if node.value.fileExtension}
@@ -184,6 +190,11 @@
     &.collapsed {
       transform: rotateZ(0deg);
     }
+  }
+  .spinner-border {
+    vertical-align: -0.125em;
+    border: 0.25em solid;
+    border-right-color: transparent;
   }
   .extension {
     background: #ffffff0a;

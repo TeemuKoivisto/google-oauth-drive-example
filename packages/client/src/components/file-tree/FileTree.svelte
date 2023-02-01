@@ -29,7 +29,7 @@
   }
 </script>
 
-<div class="my-4 tree-view-wrapper">
+<div class={`${$$props.class || ''} my-4 tree-view-wrapper`}>
   <TreeView
     data={$rootFile}
     nodeComponent={CustomNode}

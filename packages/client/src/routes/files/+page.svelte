@@ -57,6 +57,13 @@
     }
     await gapiActions.listFromAPI(false)
   }
+  async function handleListDrives() {
+    if ($googleCredentials === null) {
+      await gapiActions.loadAuth()
+    }
+    await gapiActions.listDrives()
+  }
+
   function toggleAllSelection() {
     // if ($allSelected) {
     //   gapiActions.selectFiles(
@@ -85,6 +92,7 @@
     <Button class="bg-red-500 text-white" on:click={clientOnly}>Client only list</Button>
     <Button class="mt-8 bg-red-500 text-white" on:click={APIOnly}>API only list</Button>
     <Button class="mt-8 bg-red-500 text-white" on:click={clientAndAPI}>Client & API list</Button>
+    <Button class="mt-8 bg-red-500 text-white" on:click={handleListDrives}>List drives</Button>
   </header>
   <div class="mt-8 relative ">
     <div class="flex items-center justify-between pb-4">

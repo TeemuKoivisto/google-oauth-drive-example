@@ -6,7 +6,7 @@ import { persistedWritable } from './persist'
 
 import * as fileApi from '$api/file'
 
-import type { Maybe, DriveFile, FileRoot } from '@my-org/types'
+import type { Maybe, SharedDrive, DriveFile, FileRoot } from '@my-org/types'
 
 import { GOOGLE_CLIENT_ID } from '../config'
 
@@ -26,6 +26,7 @@ export const googleCredentials = persistedWritable<GoogleCredentials | null>(nul
   storage: 'session'
 })
 export const renderedButton = writable<HTMLElement | null>(null)
+export const sharedDrives = writable<SharedDrive[]>([])
 export const files = writable<DriveFile[]>([])
 export const fileTree = writable<Map<string, DriveFile[]>>(new Map())
 export const rootFile = writable<FileRoot>({
@@ -247,5 +248,21 @@ export const gapiActions = {
     if ('data' in resp) {
     }
     console.log('imported data ', resp)
+  },
+  async listDrives() {
+    const { access_token } = get(googleCredentials) || {}
+    if (!access_token) {
+      return { err: 'Unauthenticated', code: 401 }
+    }
+    const resp = await fileApi.listDrives(access_token)
+    if ('data' in resp) {
+      sharedDrives.set(resp.data.drives)
+      rootFile.set({
+        isRoot: true,
+        my_drive: { ...resp.data.my_drive, kind: '__my-drive__' },
+        shared: { id: 'shared-files', name: 'Shared with me', kind: '__shared__' }
+      })
+    }
+    console.log('listed drives data ', resp)
   }
 }

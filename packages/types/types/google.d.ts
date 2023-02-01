@@ -1,3 +1,5 @@
+import { Maybe } from './utils'
+
 export interface FileRoot {
   isRoot: true
   my_drive: MyDrive | null
@@ -35,6 +37,18 @@ export interface DriveFile {
   thumbnailLink?: string
 }
 
+// GET /drives?token=string
+export interface SharedDrive {
+  id: string
+  name: string
+  backgroundImage?: string
+  color?: string
+}
+export interface IListDrivesResponse {
+  my_drive: { id: string; name: string }
+  drives: SharedDrive[]
+}
+
 // GET /files?token=string
 export interface IListFilesQuery {
   token?: string
@@ -56,5 +70,5 @@ export interface IImportFilesRequest {
   files: ImportedFile[]
 }
 export interface IImportFilesResponse {
-  result: Maybe<boolean>[]
+  result: Maybe<{ size: number }>[]
 }

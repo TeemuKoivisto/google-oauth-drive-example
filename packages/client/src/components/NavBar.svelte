@@ -1,5 +1,5 @@
 <script>
-  import { user, isLoggedIn } from '$stores/auth'
+  import { isLoggedIn } from '$stores/auth'
   import { authActions } from '$stores/auth.actions'
   import { goto } from '$app/navigation'
 
@@ -18,6 +18,7 @@
       <a data-sveltekit:prefetch href="/" class="hover:underline text-white"> Example </a>
       {#if $isLoggedIn}
         <a data-sveltekit:prefetch href="/files" class="hover:underline text-white"> Files </a>
+        <a data-sveltekit:prefetch href="/flow" class="hover:underline text-white"> Flow </a>
       {/if}
     </div>
     <div>

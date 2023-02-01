@@ -7,8 +7,8 @@ import path from 'path'
 
 import { config } from '$common/config'
 
-import { Maybe, DriveFile, ImportedFile } from '@my-org/types'
-import { GaxiosError } from 'gaxios'
+import { Maybe, DriveFile, ImportedFile, IListDrivesResponse } from '@my-org/types'
+import { GaxiosError, GaxiosResponse } from 'gaxios'
 import { Credentials, OAuth2Client } from 'google-auth-library'
 
 const SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
@@ -122,6 +122,42 @@ export const driveService = {
     }
     return client
   },
+  async listDrives(authClient: Auth.OAuth2Client): Promise<Maybe<IListDrivesResponse>> {
+    const drive = google.drive({
+      version: 'v3',
+      auth: authClient
+    })
+    const [myDriveResp, driveListResp] = await Promise.all([
+      drive.files.get({
+        fileId: 'root',
+        fields: 'id, name'
+      }),
+      drive.drives.list({
+        pageSize: 100,
+        fields: '*'
+      })
+    ])
+    if (myDriveResp.status !== 200) {
+      return { err: myDriveResp.data as any, code: myDriveResp.status }
+    } else if (driveListResp.status !== 200) {
+      return { err: driveListResp.data as any, code: driveListResp.status }
+    }
+    return {
+      data: {
+        my_drive: {
+          id: myDriveResp.data.id || 'my-drive',
+          name: myDriveResp.data.name || 'My drive'
+        },
+        drives:
+          driveListResp.data.drives?.map(d => ({
+            id: d.id || 'shared-drive',
+            name: d.name || 'Untitled',
+            backgroundImage: d.backgroundImageLink || undefined,
+            color: d.colorRgb || undefined
+          })) || []
+      }
+    }
+  },
   async listFiles(
     authClient: JSONClient | Auth.OAuth2Client
   ): Promise<Maybe<{ rootFile: { id: string; name: string }; files: DriveFile[] }>> {
@@ -133,6 +169,10 @@ export const driveService = {
       fileId: 'root',
       fields: 'id, name'
     })
+    // const asdf = await drive.files.list({
+    //   q: 'id contains \'root\''
+    // })
+    // console.log('root files ', asdf)
     const files = await fetchDriveFiles(drive, [])
     if (files?.length === 0 || !files) {
       return { err: 'No files found ', code: 400 }
