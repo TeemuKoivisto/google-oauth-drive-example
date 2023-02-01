@@ -2,7 +2,7 @@
   import { onMount } from 'svelte'
 
   import { isLoggedIn } from '$stores/auth'
-  import { googleCredentials, files, selectedFiles, allSelected, gapiActions } from '$stores/gapi'
+  import { googleCredentials, files, selectedFiles, gapiActions } from '$stores/gapi'
   import { goto } from '$app/navigation'
   import Button from '$elements/Button.svelte'
   import Dropdown from '$elements/Dropdown.svelte'
@@ -58,20 +58,20 @@
     await gapiActions.listFromAPI(false)
   }
   function toggleAllSelection() {
-    if ($allSelected) {
-      gapiActions.selectFiles(
-        $files.map((_, i) => i),
-        false
-      )
-    } else {
-      gapiActions.selectFiles(
-        $files.map((_, i) => i),
-        true
-      )
-    }
+    // if ($allSelected) {
+    //   gapiActions.selectFiles(
+    //     $files.map((_, i) => i),
+    //     false
+    //   )
+    // } else {
+    //   gapiActions.selectFiles(
+    //     $files.map((_, i) => i),
+    //     true
+    //   )
+    // }
   }
   function toggleFile(idx: number, oldVal: boolean) {
-    gapiActions.selectFiles([idx], !oldVal)
+    // gapiActions.selectFiles([idx], !oldVal)
   }
   function handleDownload() {
     gapiActions.importFiles()
@@ -128,7 +128,6 @@
               <input
                 id="checkbox-all-search"
                 type="checkbox"
-                checked={$allSelected}
                 on:click={toggleAllSelection}
                 class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               />
@@ -149,8 +148,6 @@
                 <input
                   id="checkbox-table-search-1"
                   type="checkbox"
-                  checked={$selectedFiles[idx]}
-                  on:click={() => toggleFile(idx, $selectedFiles[idx])}
                   class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                 />
                 <label for="checkbox-table-search-1" class="sr-only">checkbox</label>

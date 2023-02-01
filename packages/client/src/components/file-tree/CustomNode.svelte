@@ -9,6 +9,8 @@
 
   import debounce from 'lodash.debounce'
 
+  import { selectedFiles, gapiActions } from '$stores/gapi'
+
   import type { TreeNode, TreeViewProps } from 'svelte-tree-view'
   import type { DriveFile, MyDrive, SharedFiles } from '@my-org/types'
 
@@ -43,6 +45,12 @@
       icon = file
     }
   }
+  $: {
+    const sel = $selectedFiles.get(value.id)
+    if (sel !== undefined && sel !== checked) {
+      checked = sel
+    }
+  }
 
   onMount(() => {
     if (isImage) {
@@ -66,13 +74,17 @@
     return debouncedSetHover()
   }
 
-  const handleMouseOut = () => {
+  function handleMouseOut() {
     hoverStatus = 'inactive'
+  }
+
+  function handleSelect() {
+    gapiActions.selectFiles([value.id], !checked)
   }
 
   function handleClick() {
     if (isImage) {
-      console.log('select')
+      gapiActions.selectFiles([value.id], !checked)
     } else {
       handleToggleCollapse(node)
     }
@@ -95,7 +107,7 @@
 
 <div class="flex w-full h-[28px]" bind:this={containerElement}>
   <div class="flex items-center justify-center pr-4">
-    <input class="w-4 h-4" type="checkbox" {checked} on:change={() => (checked = !checked)} />
+    <input class="w-4 h-4" type="checkbox" {checked} on:click={handleSelect} />
   </div>
   <div class="relative" style:padding-left={`${node.depth * 1}em`}>
     {#if value?.thumbnailLink}
@@ -105,7 +117,11 @@
         style:top="30px"
         style:left="0px"
       >
-        <img class="w-max h-auto" src={value.thumbnailLink} alt="Thumbnail" />
+        <img
+          class="w-max h-auto"
+          src={value.thumbnailLink}
+          alt="Thumbnail, re-login to Google if not visible"
+        />
       </div>
     {/if}
   </div>

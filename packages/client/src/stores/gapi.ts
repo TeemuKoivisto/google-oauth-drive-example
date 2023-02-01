@@ -6,7 +6,7 @@ import { persistedWritable } from './persist'
 
 import * as fileApi from '$api/file'
 
-import type { Maybe, DriveFile, MyDrive, SharedFiles, FileRoot } from '@my-org/types'
+import type { Maybe, DriveFile, FileRoot } from '@my-org/types'
 
 import { GOOGLE_CLIENT_ID } from '../config'
 
@@ -33,8 +33,7 @@ export const rootFile = writable<FileRoot>({
   my_drive: null,
   shared: null
 })
-export const selectedFiles = writable<boolean[]>([])
-export const allSelected = derived(selectedFiles, sf => sf.length > 0 && sf.every(v => v))
+export const selectedFiles = writable<Map<string, boolean>>(new Map())
 
 let authLoaded = false,
   gapiLoaded = false
@@ -202,37 +201,44 @@ export const gapiActions = {
         my_drive: { ...myDrive, kind: '__my-drive__' },
         shared: { id: 'shared-files', name: 'Shared with me', kind: '__shared__' }
       })
-      selectedFiles.set(fetched.map(() => true))
+      selectedFiles.set(new Map(fetched.map(f => [f.id, false])))
     }
     console.log('api data ', resp)
     return resp
   },
-  selectFiles(files: number[], selected = true) {
-    selectedFiles.update(old =>
-      old.map((prev, idx) => {
-        if (selected && files.includes(idx)) {
-          return true
-        } else if (!selected && files.includes(idx)) {
-          return false
+  selectFiles(ids: string[], selected = true) {
+    const tree = get(fileTree)
+    const newSelected = get(selectedFiles)
+    let processed = ids
+    while (processed.length > 0) {
+      processed = processed.reduce((acc, id) => {
+        newSelected.set(id, selected)
+        const children = tree.get(id)
+        if (children) {
+          children.forEach(child => {
+            acc.push(child.id)
+          })
         }
-        return prev
-      })
-    )
+        return acc
+      }, [] as string[])
+    }
+    // console.log('setSelected ', newSelected)
+    selectedFiles.set(newSelected)
   },
   async importFiles() {
     const { access_token, expires_in } = get(googleCredentials) || {}
     if (!access_token || !expires_in) {
       return { err: 'Unauthenticated', code: 401 }
     }
-    const selected = get(selectedFiles)
-    const imported = get(files).filter((_, idx) => selected[idx])
-    const resp = await fileApi.importFiles({
-      token: access_token,
-      expires: expires_in,
-      files: imported
-    })
-    if ('data' in resp) {
-    }
-    console.log('imported data ', resp)
+    // const selected = get(selectedFiles)
+    // const imported = get(files).filter((_, idx) => selected[idx])
+    // const resp = await fileApi.importFiles({
+    //   token: access_token,
+    //   expires: expires_in,
+    //   files: imported
+    // })
+    // if ('data' in resp) {
+    // }
+    // console.log('imported data ', resp)
   }
 }
