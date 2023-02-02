@@ -2,13 +2,13 @@
   import { onMount } from 'svelte'
 
   import { isLoggedIn } from '$stores/auth'
-  import { googleCredentials, files, selectedFiles, gapiActions } from '$stores/gapi'
+  import { googleCredentials, gapiActions } from '$stores/gapi'
   import { goto } from '$app/navigation'
   import Button from '$elements/Button.svelte'
   import Dropdown from '$elements/Dropdown.svelte'
   import FileTree from '$components/file-tree/FileTree.svelte'
 
-  let loginEl: HTMLElement
+  let googleLoginEl: HTMLElement
 
   const dropdownOptions = [
     {
@@ -41,7 +41,7 @@
   }
 
   onMount(() => {
-    gapiActions.setRenderContainer(loginEl)
+    gapiActions.setRenderContainer(googleLoginEl)
   })
 
   async function clientOnly() {
@@ -63,23 +63,6 @@
     }
     await gapiActions.listDrives()
   }
-
-  function toggleAllSelection() {
-    // if ($allSelected) {
-    //   gapiActions.selectFiles(
-    //     $files.map((_, i) => i),
-    //     false
-    //   )
-    // } else {
-    //   gapiActions.selectFiles(
-    //     $files.map((_, i) => i),
-    //     true
-    //   )
-    // }
-  }
-  function toggleFile(idx: number, oldVal: boolean) {
-    // gapiActions.selectFiles([idx], !oldVal)
-  }
   function handleDownload() {
     gapiActions.importFiles()
   }
@@ -88,11 +71,13 @@
 <section class="p-4 h-full m-auto lg:container md:p-16 md:pt-8 xs:p-8 rounded-2xl">
   <header class="flex flex-col items-center mt-8">
     <h1 class="my-3 text-5xl font-bold flex items-center">List Drive files</h1>
-    <div class="my-8" bind:this={loginEl} />
-    <Button class="bg-red-500 text-white" on:click={clientOnly}>Client only list</Button>
-    <Button class="mt-8 bg-red-500 text-white" on:click={APIOnly}>API only list</Button>
-    <Button class="mt-8 bg-red-500 text-white" on:click={clientAndAPI}>Client & API list</Button>
-    <Button class="mt-8 bg-red-500 text-white" on:click={handleListDrives}>List drives</Button>
+    <div class="my-8" bind:this={googleLoginEl} />
+    <div class="flex items-center">
+      <Button class="bg-red-500 text-white" on:click={clientOnly}>Client only list</Button>
+      <Button class="ml-4 bg-red-500 text-white" on:click={APIOnly}>API only list</Button>
+      <Button class="ml-4 bg-red-500 text-white" on:click={clientAndAPI}>Client & API list</Button>
+      <Button class="ml-4 bg-red-500 text-white" on:click={handleListDrives}>List drives</Button>
+    </div>
   </header>
   <div class="mt-8 relative ">
     <div class="flex items-center justify-between pb-4">
@@ -128,49 +113,6 @@
       </div>
     </div>
     <FileTree />
-    <table class="overflow-x-auto w-full text-sm text-left text-gray-500 dark:text-gray-400">
-      <thead class="text-xs text-gray-900 dark:text-gray-400">
-        <tr>
-          <th scope="col" class="p-4">
-            <div class="flex items-center">
-              <input
-                id="checkbox-all-search"
-                type="checkbox"
-                on:click={toggleAllSelection}
-                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-              />
-              <label for="checkbox-all-search" class="sr-only">checkbox</label>
-            </div>
-          </th>
-          <th scope="col" class="px-6 py-3"> ID </th>
-          <th scope="col" class="px-6 py-3"> Name </th>
-          <th scope="col" class="px-6 py-3"> Kind </th>
-          <th scope="col" class="px-6 py-3"> MimeType </th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each $files as file, idx}
-          <tr class="bg-white dark:bg-gray-800">
-            <td class="w-4 p-4">
-              <div class="flex items-center">
-                <input
-                  id="checkbox-table-search-1"
-                  type="checkbox"
-                  class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                />
-                <label for="checkbox-table-search-1" class="sr-only">checkbox</label>
-              </div>
-            </td>
-            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-              >{file.id}</td
-            >
-            <td class="px-6 py-4">{file.name}</td>
-            <td class="px-6 py-4">{file.kind}</td>
-            <td class="px-6 py-4">{file.mimeType}</td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
     <button
       class="mt-4 inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-3 py-2 dark:bg-green-800 dark:text-white dark:border-gray-600 dark:hover:bg-green-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
       on:click={handleDownload}>Download</button

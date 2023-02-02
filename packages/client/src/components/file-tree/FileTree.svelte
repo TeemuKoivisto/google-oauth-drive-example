@@ -5,7 +5,7 @@
 
   import CustomNode from './CustomNode.svelte'
 
-  import { fileTree, rootFile } from '$stores/gapi'
+  import { fileTree, fileTreeRoot } from '$stores/gapi'
 
   function isDriveFile(obj: any): obj is DriveFile {
     return typeof obj === 'object' && 'id' in obj
@@ -16,10 +16,11 @@
   }
 
   function mapTreeFileChildren(val: DriveFile | FileRoot, type: ValueType) {
-    if (type === 'object' && isFileRoot(val) && val.my_drive && val.shared) {
+    if (type === 'object' && isFileRoot(val) && val.my_drive && val.shared_with_me) {
       return [
         [val.my_drive.name, val.my_drive] as [string, any],
-        [val.shared.name, val.shared] as [string, any]
+        ...val.drives.map(d => [d.name, d] as [string, any]),
+        [val.shared_with_me.name, val.shared_with_me] as [string, any]
       ]
     } else if (type === 'object' && isDriveFile(val)) {
       const children = $fileTree.get(val.id) || []
@@ -31,7 +32,7 @@
 
 <div class={`${$$props.class || ''} my-4 tree-view-wrapper`}>
   <TreeView
-    data={$rootFile}
+    data={$fileTreeRoot}
     nodeComponent={CustomNode}
     recursionOpts={{
       mapChildren: mapTreeFileChildren,

@@ -159,7 +159,8 @@ export const driveService = {
     }
   },
   async listFiles(
-    authClient: JSONClient | Auth.OAuth2Client
+    authClient: JSONClient | Auth.OAuth2Client,
+    driveId?: string
   ): Promise<Maybe<{ rootFile: { id: string; name: string }; files: DriveFile[] }>> {
     const drive = google.drive({
       version: 'v3',

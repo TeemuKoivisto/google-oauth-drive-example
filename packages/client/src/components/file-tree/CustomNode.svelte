@@ -12,11 +12,11 @@
   import { selectedFiles, gapiActions } from '$stores/gapi'
 
   import type { TreeNode, TreeViewProps } from 'svelte-tree-view'
-  import type { DriveFile, MyDrive, SharedFiles } from '@my-org/types'
+  import type { DriveFile, MyDrive, SharedWithMe } from '@my-org/types'
 
   type HoverStatus = 'inactive' | 'entered' | 'active'
 
-  export let node: TreeNode<DriveFile | MyDrive | SharedFiles>,
+  export let node: TreeNode<DriveFile | MyDrive | SharedWithMe>,
     props: Omit<TreeViewProps, 'data'>,
     handleToggleCollapse: (node: TreeNode) => void,
     defaultFormatter: (val: any) => string | undefined,
@@ -24,6 +24,7 @@
     defaultCopyNodeToClipboard: (node: TreeNode) => void
 
   let nodeKey = node.key,
+    loading = false,
     checked = false,
     hoverStatus: HoverStatus = 'inactive',
     containerElement: HTMLElement | null = null,
@@ -31,9 +32,11 @@
 
   $: hasChildren = node.children.length > 0
   $: value = node.value
+  $: isSharedWithMe = value.kind === '__shared__'
+  $: isDrive = !('parentId' in value) && !isSharedWithMe
   $: isImage = value.mimeType?.slice(0, 6) === 'image/'
   $: {
-    if (value.kind === '__my-drive__') {
+    if (isDrive) {
       icon = gdrive
     } else if (value.kind === '__shared__') {
       icon = shared
@@ -85,6 +88,9 @@
   function handleClick() {
     if (isImage) {
       gapiActions.selectFiles([value.id], !checked)
+      // } else if (isDrive || isSharedWithMe)
+      // check if already fetched -> boolean? or local status, no in store
+      // if not, fetch
     } else {
       handleToggleCollapse(node)
     }
@@ -133,7 +139,7 @@
     bind:this={containerElement}
   >
     <div class="flex items-center truncate">
-      {#if hasChildren}
+      {#if isDrive || isSharedWithMe || hasChildren}
         <button
           class={`arrow-btn ${node.collapsed ? 'collapsed' : ''}`}
           on:click={() => handleToggleCollapse(node)}
@@ -147,11 +153,13 @@
         <Icon {icon} width={20} />
       </div>
       <button class="ml-4 pr-4 text-left text-white truncate">{nodeKey}</button>
-      <div
-        class="spinner-border animate-spin inline-block w-4 h-4 border-1 rounded-full"
-        role="status"
-        aria-label="Loading"
-      />
+      {#if loading}
+        <div
+          class="spinner-border animate-spin inline-block w-4 h-4 border-1 rounded-full"
+          role="status"
+          aria-label="Loading"
+        />
+      {/if}
     </div>
     <div class="flex items-center">
       {#if node.value.fileExtension}

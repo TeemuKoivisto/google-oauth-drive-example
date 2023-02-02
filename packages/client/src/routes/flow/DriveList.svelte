@@ -11,7 +11,7 @@
   import FileTree from '$components/file-tree/FileTree.svelte'
   import DriveListItem from './DriveListItem.svelte'
 
-  import { rootFile, sharedDrives } from '$stores/gapi'
+  import { fileTreeRoot, sharedDrives } from '$stores/gapi'
 
   let state = 'select-drives'
 </script>
@@ -23,7 +23,7 @@
       <button class="mr-4 rounded hover:bg-gray-800">
         <Icon icon={down} width={48} />
       </button>
-      <DriveListItem icon={gdrive} name={$rootFile.my_drive?.name || ''} />
+      <DriveListItem icon={gdrive} name={$fileTreeRoot.my_drive?.name || ''} />
     </div>
     <FileTree class="ml-20" />
   </li>
@@ -43,7 +43,7 @@
       <div class="mr-4">
         <Icon icon={down} width={48} />
       </div>
-      <DriveListItem icon={shared} name={$rootFile.shared?.name || ''} />
+      <DriveListItem icon={shared} name={$fileTreeRoot.shared_with_me?.name || ''} />
     </div>
     <FileTree class="ml-20" />
   </li>

@@ -29,11 +29,13 @@ export const renderedButton = writable<HTMLElement | null>(null)
 export const sharedDrives = writable<SharedDrive[]>([])
 export const files = writable<DriveFile[]>([])
 export const fileTree = writable<Map<string, DriveFile[]>>(new Map())
-export const rootFile = writable<FileRoot>({
+export const fileTreeRoot = writable<FileRoot>({
   isRoot: true,
   my_drive: null,
-  shared: null
+  drives: [],
+  shared_with_me: null
 })
+export const fetchedRootFolders = writable<Set<string>>(new Set())
 export const selectedFiles = writable<Map<string, boolean>>(new Map())
 
 let authLoaded = false,
@@ -165,7 +167,7 @@ export const gapiActions = {
       const m = new Map<string, DriveFile[]>()
       let folders: DriveFile[] = []
       fetched.forEach(f => {
-        const parentId = f.parentId || 'shared-files'
+        const parentId = f.parentId || 'shared-with-me'
         const prev = m.get(parentId)
         if (prev) {
           m.set(parentId, [...prev, f])
@@ -197,10 +199,11 @@ export const gapiActions = {
         }
       }
       fileTree.set(m)
-      rootFile.set({
+      fileTreeRoot.set({
         isRoot: true,
         my_drive: { ...myDrive, kind: '__my-drive__' },
-        shared: { id: 'shared-files', name: 'Shared with me', kind: '__shared__' }
+        drives: [],
+        shared_with_me: { id: 'shared-with-me', name: 'Shared with me', kind: '__shared__' }
       })
       selectedFiles.set(new Map(fetched.map(f => [f.id, false])))
     }
@@ -257,12 +260,65 @@ export const gapiActions = {
     const resp = await fileApi.listDrives(access_token)
     if ('data' in resp) {
       sharedDrives.set(resp.data.drives)
-      rootFile.set({
+      fileTreeRoot.set({
         isRoot: true,
         my_drive: { ...resp.data.my_drive, kind: '__my-drive__' },
-        shared: { id: 'shared-files', name: 'Shared with me', kind: '__shared__' }
+        drives: resp.data.drives,
+        shared_with_me: { id: 'shared-with-me', name: 'Shared with me', kind: '__shared__' }
       })
+      fetchedRootFolders.set(new Set())
     }
     console.log('listed drives data ', resp)
+    return resp
+  },
+  async listFiles(driveId?: string) {
+    const { access_token } = get(googleCredentials) || {}
+    const query = {
+      token: access_token || '',
+      drive_id: driveId
+    }
+    const resp = await fileApi.listFiles(query)
+    if ('data' in resp) {
+      const { files: fetched } = resp.data
+      const m = new Map<string, DriveFile[]>()
+      let folders: DriveFile[] = []
+      fetched.forEach(f => {
+        const parentId = f.parentId || 'shared-with-me'
+        const prev = m.get(parentId)
+        if (prev) {
+          m.set(parentId, [...prev, f])
+        } else {
+          m.set(parentId, [f])
+        }
+        if (f.mimeType === 'application/vnd.google-apps.folder') {
+          folders.push(f)
+        }
+      })
+      while (true) {
+        let nochanges = true
+        const unchangedFolders: DriveFile[] = []
+        folders.forEach(f => {
+          const found = m.get(f.id)
+          if (!found && f.parentId) {
+            const prev = m.get(f.parentId)
+            if (prev) {
+              m.set(f.parentId, prev?.filter(ff => ff.id !== f.id) || [])
+              nochanges = false
+            }
+          } else {
+            unchangedFolders.push(f)
+          }
+        })
+        folders = unchangedFolders
+        if (nochanges) {
+          break
+        }
+      }
+      files.set(fetched)
+      fileTree.set(m)
+      selectedFiles.set(new Map(fetched.map(f => [f.id, false])))
+    }
+    console.log('api data ', resp)
+    return resp
   }
 }

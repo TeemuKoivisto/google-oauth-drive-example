@@ -40,7 +40,7 @@ export const listDriveFiles = async (
   next: NextFunction
 ) => {
   try {
-    const { token } = req.query
+    const { token, drive_id } = req.query
     let client
     if (token) {
       client = driveService.createClient({
@@ -51,7 +51,7 @@ export const listDriveFiles = async (
     } else {
       client = await driveService.promptOAuth()
     }
-    const resp = await driveService.listFiles(client)
+    const resp = await driveService.listFiles(client, drive_id)
     if ('err' in resp) {
       return next(new CustomError(resp.err, resp.code))
     }

@@ -3,7 +3,8 @@ import { Maybe } from './utils'
 export interface FileRoot {
   isRoot: true
   my_drive: MyDrive | null
-  shared: SharedFiles | null
+  drives: SharedDrive[]
+  shared_with_me: SharedWithMe | null
 }
 export interface MyDrive {
   id: string
@@ -14,8 +15,14 @@ export interface MyDrive {
   fileExtension?: string
   thumbnailLink?: string
 }
-export interface SharedFiles {
-  id: 'shared-files'
+export interface SharedDrive {
+  id: string
+  name: string
+  backgroundImage?: string
+  color?: string
+}
+export interface SharedWithMe {
+  id: 'shared-with-me'
   name: string
   kind: '__shared__'
   mimeType?: string
@@ -38,20 +45,15 @@ export interface DriveFile {
 }
 
 // GET /drives?token=string
-export interface SharedDrive {
-  id: string
-  name: string
-  backgroundImage?: string
-  color?: string
-}
 export interface IListDrivesResponse {
   my_drive: { id: string; name: string }
   drives: SharedDrive[]
 }
 
-// GET /files?token=string
+// GET /files?token=string&drive_id=drive_id
 export interface IListFilesQuery {
   token?: string
+  drive_id?: string
 }
 export interface IListFilesResponse {
   rootFile: { id: string; name: string }
