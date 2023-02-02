@@ -61,15 +61,20 @@ async function download(
 ): Promise<Maybe<{ size: number }>> {
   let resp
   try {
-    resp = await drive.files.get({ fileId: file.id, alt: 'media' }, { responseType: 'stream' })
-    // console.log('fetched ', resp)
-    const data = resp.data as any as Http2Stream
-    await fs.writeFile(path.join(process.cwd(), 'tmp/', file.name), data)
-    return {
-      data: {
-        size: file.size || 0
+    if (file.fileExtension) {
+      resp = await drive.files.get({ fileId: file.id, alt: 'media' }, { responseType: 'stream' })
+      // console.log('fetched ', resp)
+      const data = resp.data as any as Http2Stream
+      await fs.writeFile(path.join(process.cwd(), 'tmp/', file.name), data)
+      return {
+        data: {
+          size: file.size || 0
+        }
       }
     }
+    // Is a folder
+    await fs.mkdir(path.join(process.cwd(), 'tmp/', file.name))
+    return { data: { size: 0 } }
   } catch (err: any) {
     let msg, code
     console.error(err)
@@ -145,7 +150,7 @@ export const driveService = {
         drives:
           driveListResp.data.drives?.map(d => ({
             id: d.id || 'shared-drive',
-            name: d.name || 'Untitled',
+            name: d.name || 'Shared drive',
             kind: RootFolderKind.shared_drive,
             backgroundImage: d.backgroundImageLink || undefined,
             color: d.colorRgb || undefined

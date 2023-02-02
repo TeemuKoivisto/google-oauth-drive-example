@@ -229,18 +229,18 @@ export const gapiActions = {
       drive_id: kind === RootFolderKind.my_drive ? undefined : driveId
     })
     if ('data' in resp) {
-      const allFilesMap = get(filesMap)
+      const allFilesMap = get(filesMap),
+        prevFileTree = get(fileTree)
       const { files: fetched } = resp.data
-      const m = new Map<string, DriveFile[]>()
       let folders: DriveFile[] = []
       fetched.forEach(f => {
         if (allFilesMap.has(f.id)) return
         const parentId = f.parentId || 'shared-with-me'
-        const prev = m.get(parentId)
+        const prev = prevFileTree.get(parentId)
         if (prev) {
-          m.set(parentId, [...prev, f])
+          prevFileTree.set(parentId, [...prev, f])
         } else {
-          m.set(parentId, [f])
+          prevFileTree.set(parentId, [f])
         }
         if (f.mimeType === 'application/vnd.google-apps.folder') {
           folders.push(f)
@@ -251,11 +251,11 @@ export const gapiActions = {
         let nochanges = true
         const unchangedFolders: DriveFile[] = []
         folders.forEach(f => {
-          const found = m.get(f.id)
+          const found = prevFileTree.get(f.id)
           if (!found && f.parentId) {
-            const prev = m.get(f.parentId)
+            const prev = prevFileTree.get(f.parentId)
             if (prev) {
-              m.set(f.parentId, prev?.filter(ff => ff.id !== f.id) || [])
+              prevFileTree.set(f.parentId, prev?.filter(ff => ff.id !== f.id) || [])
               nochanges = false
             }
           } else {
@@ -268,7 +268,7 @@ export const gapiActions = {
         }
       }
       filesMap.set(allFilesMap)
-      fileTree.update(old => new Map([...old, ...m]))
+      fileTree.set(prevFileTree)
       selectedFiles.update(
         old => new Map([...old, ...fetched.map(f => [f.id, false] as [string, boolean])])
       )
