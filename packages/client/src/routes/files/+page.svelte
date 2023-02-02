@@ -55,7 +55,7 @@
     if ($googleCredentials === null) {
       await gapiActions.loadAuth()
     }
-    await gapiActions.listFromAPI(false)
+    await gapiActions.listDrives()
   }
   async function handleListDrives() {
     if ($googleCredentials === null) {

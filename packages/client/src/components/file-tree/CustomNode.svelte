@@ -9,14 +9,15 @@
 
   import debounce from 'lodash.debounce'
 
-  import { selectedFiles, gapiActions } from '$stores/gapi'
+  import { selectedFiles, fetchedRootFolders, gapiActions } from '$stores/gapi'
 
   import type { TreeNode, TreeViewProps } from 'svelte-tree-view'
-  import type { DriveFile, MyDrive, SharedWithMe } from '@my-org/types'
+  import { RootFolderKind } from '@my-org/types'
+  import type { DriveFile, MyDrive, SharedDrive, SharedWithMe } from '@my-org/types'
 
   type HoverStatus = 'inactive' | 'entered' | 'active'
 
-  export let node: TreeNode<DriveFile | MyDrive | SharedWithMe>,
+  export let node: TreeNode<DriveFile | MyDrive | SharedDrive | SharedWithMe>,
     props: Omit<TreeViewProps, 'data'>,
     handleToggleCollapse: (node: TreeNode) => void,
     defaultFormatter: (val: any) => string | undefined,
@@ -30,17 +31,24 @@
     containerElement: HTMLElement | null = null,
     icon: any
 
-  $: hasChildren = node.children.length > 0
+  function amIDriveFile(obj: any): obj is DriveFile {
+    return typeof obj === 'object' && 'parentId' in obj
+  }
+
   $: value = node.value
-  $: isSharedWithMe = value.kind === '__shared__'
-  $: isDrive = !('parentId' in value) && !isSharedWithMe
-  $: isImage = value.mimeType?.slice(0, 6) === 'image/'
+  $: hasChildren = node.children.length > 0
+  $: isSharedWithMe = value.kind === RootFolderKind.shared_with_me
+  $: isDrive = !amIDriveFile(value) && !isSharedWithMe
+  $: isRootFolder = isDrive || isSharedWithMe
+  $: hasBeenFetched = isRootFolder && $fetchedRootFolders.has(value.id)
+  $: isImage = amIDriveFile(value) && value.mimeType?.slice(0, 6) === 'image/'
+  $: isFolder = amIDriveFile(value) && value.mimeType === 'application/vnd.google-apps.folder'
   $: {
     if (isDrive) {
       icon = gdrive
-    } else if (value.kind === '__shared__') {
+    } else if (isSharedWithMe) {
       icon = shared
-    } else if (value.mimeType === 'application/vnd.google-apps.folder') {
+    } else if (isFolder) {
       icon = folder
     } else if (isImage) {
       icon = image
@@ -88,9 +96,12 @@
   function handleClick() {
     if (isImage) {
       gapiActions.selectFiles([value.id], !checked)
-      // } else if (isDrive || isSharedWithMe)
-      // check if already fetched -> boolean? or local status, no in store
-      // if not, fetch
+    } else if (!amIDriveFile(value) && !hasBeenFetched) {
+      loading = true
+      gapiActions.listFiles(value.id, value.kind).finally(() => {
+        handleToggleCollapse(node)
+        loading = false
+      })
     } else {
       handleToggleCollapse(node)
     }

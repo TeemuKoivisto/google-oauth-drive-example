@@ -35,8 +35,8 @@
     data={$fileTreeRoot}
     nodeComponent={CustomNode}
     recursionOpts={{
-      mapChildren: mapTreeFileChildren,
-      shouldExpandNode: () => true
+      mapChildren: mapTreeFileChildren
+      // shouldExpandNode: () => true
     }}
   />
 </div>

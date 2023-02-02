@@ -3,7 +3,7 @@ import type { ILoginParams, User } from '@my-org/types'
 import * as authApi from '$api/auth'
 
 import { user, jwt } from './auth'
-import { googleCredentials, files, selectedFiles, fileTreeRoot, fileTree } from './gapi'
+import { googleCredentials, filesMap, selectedFiles, fileTreeRoot, fileTree } from './gapi'
 
 export const authActions = {
   updateUser(updated: User) {
@@ -21,7 +21,7 @@ export const authActions = {
     user.set(null)
     jwt.set(null)
     googleCredentials.set(null)
-    files.set([])
+    filesMap.set(new Map())
     fileTree.set(new Map())
     fileTreeRoot.set({
       isRoot: true,

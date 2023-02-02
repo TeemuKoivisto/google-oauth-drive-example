@@ -1,5 +1,7 @@
+import { RootFolderKind } from '../src'
 import { Maybe } from './utils'
 
+export { RootFolderKind } from '../src'
 export interface FileRoot {
   isRoot: true
   my_drive: MyDrive | null
@@ -9,7 +11,7 @@ export interface FileRoot {
 export interface MyDrive {
   id: string
   name: string
-  kind: '__my-drive__'
+  kind: RootFolderKind.my_drive
   mimeType?: string
   size?: number
   fileExtension?: string
@@ -18,13 +20,17 @@ export interface MyDrive {
 export interface SharedDrive {
   id: string
   name: string
+  kind: RootFolderKind.shared_drive
   backgroundImage?: string
   color?: string
+  size?: number
+  fileExtension?: string
+  thumbnailLink?: string
 }
 export interface SharedWithMe {
   id: 'shared-with-me'
   name: string
-  kind: '__shared__'
+  kind: RootFolderKind.shared_with_me
   mimeType?: string
   size?: number
   fileExtension?: string
@@ -56,7 +62,6 @@ export interface IListFilesQuery {
   drive_id?: string
 }
 export interface IListFilesResponse {
-  rootFile: { id: string; name: string }
   files: DriveFile[]
 }
 

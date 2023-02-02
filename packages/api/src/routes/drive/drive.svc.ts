@@ -7,7 +7,7 @@ import path from 'path'
 
 import { config } from '$common/config'
 
-import { Maybe, DriveFile, ImportedFile, IListDrivesResponse } from '@my-org/types'
+import { RootFolderKind, Maybe, DriveFile, ImportedFile, IListDrivesResponse } from '@my-org/types'
 import { GaxiosError, GaxiosResponse } from 'gaxios'
 import { Credentials, OAuth2Client } from 'google-auth-library'
 
@@ -39,24 +39,18 @@ async function loadSavedCredentialsIfExist() {
 }
 
 async function fetchDriveFiles(
+  params: drive_v3.Params$Resource$Files$List,
   drive: drive_v3.Drive,
   files: drive_v3.Schema$File[],
   nextPageToken?: string | undefined,
   iters = 0
 ): Promise<drive_v3.Schema$File[]> {
-  const res = await drive.files.list({
-    pageSize: 1000,
-    q: 'mimeType contains "image/" or mimeType = "application/vnd.google-apps.folder"',
-    pageToken: nextPageToken,
-    orderBy: 'modifiedTime',
-    fields:
-      'nextPageToken, files(id, name, kind, mimeType, driveId, teamDriveId, fileExtension, modifiedTime, parents, size, imageMediaMetadata, videoMediaMetadata, thumbnailLink)'
-  })
+  const res = await drive.files.list({ ...params, pageToken: nextPageToken })
   if (res.data.files) {
     files = [...files, ...res.data.files]
   }
   if (res.data.nextPageToken && iters < 5) {
-    return fetchDriveFiles(drive, files, res.data.nextPageToken, iters + 1)
+    return fetchDriveFiles(params, drive, files, res.data.nextPageToken, iters + 1)
   }
   return files
 }
@@ -152,6 +146,7 @@ export const driveService = {
           driveListResp.data.drives?.map(d => ({
             id: d.id || 'shared-drive',
             name: d.name || 'Untitled',
+            kind: RootFolderKind.shared_drive,
             backgroundImage: d.backgroundImageLink || undefined,
             color: d.colorRgb || undefined
           })) || []
@@ -161,29 +156,34 @@ export const driveService = {
   async listFiles(
     authClient: JSONClient | Auth.OAuth2Client,
     driveId?: string
-  ): Promise<Maybe<{ rootFile: { id: string; name: string }; files: DriveFile[] }>> {
+  ): Promise<Maybe<{ files: DriveFile[] }>> {
     const drive = google.drive({
       version: 'v3',
       auth: authClient
     })
-    const fetchedRootFile = await drive.files.get({
-      fileId: 'root',
-      fields: 'id, name'
-    })
-    // const asdf = await drive.files.list({
-    //   q: 'id contains \'root\''
-    // })
-    // console.log('root files ', asdf)
-    const files = await fetchDriveFiles(drive, [])
+    const params: drive_v3.Params$Resource$Files$List = {
+      pageSize: 1000,
+      q: '(mimeType contains "image/" or mimeType = "application/vnd.google-apps.folder")',
+      orderBy: 'modifiedTime',
+      includeItemsFromAllDrives: true,
+      supportsAllDrives: true,
+      fields:
+        'nextPageToken, files(id, name, kind, mimeType, driveId, teamDriveId, fileExtension, modifiedTime, parents, size, imageMediaMetadata, videoMediaMetadata, thumbnailLink)'
+    }
+    if (driveId === 'shared-with-me') {
+      params.q += " and not 'me' in owners"
+    } else if (!driveId) {
+      params.q += " and 'me' in owners"
+    } else {
+      params.driveId = driveId
+      params.corpora = 'drive'
+    }
+    const files = await fetchDriveFiles(params, drive, [])
     if (files?.length === 0 || !files) {
       return { err: 'No files found ', code: 400 }
     }
     return {
       data: {
-        rootFile: {
-          id: fetchedRootFile.data.id || '',
-          name: fetchedRootFile.data.name || 'My drive'
-        },
         files: files.map(f => ({
           id: f.id || '',
           name: f.name || '',
