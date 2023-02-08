@@ -8,7 +8,7 @@ import type {
 import { get, post } from './methods'
 
 export const listDrives = (token: string) =>
-  get<IListDrivesResponse>(`drives?token=${token}`, 'Failed to list files')
+  get<IListDrivesResponse>(`drives?token=${token}`, 'Failed to list drives')
 
 export const listFiles = ({ token, drive_id }: IListFilesQuery) =>
   get<IListFilesResponse>(

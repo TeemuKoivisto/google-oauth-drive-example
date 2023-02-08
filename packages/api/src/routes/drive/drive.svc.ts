@@ -8,7 +8,7 @@ import path from 'path'
 import { config } from '$common/config'
 
 import { RootFolderKind, Maybe, DriveFile, ImportedFile, IListDrivesResponse } from '@my-org/types'
-import { GaxiosError, GaxiosResponse } from 'gaxios'
+import { GaxiosError, GaxiosPromise, GaxiosResponse } from 'gaxios'
 import { Credentials, OAuth2Client } from 'google-auth-library'
 
 const SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
@@ -35,6 +35,22 @@ async function loadSavedCredentialsIfExist() {
     return google.auth.fromJSON(credentials)
   } catch (err) {
     return null
+  }
+}
+
+async function wrapGaxios<T>(promise: GaxiosPromise<T>): Promise<Maybe<T>> {
+  try {
+    const res = await promise
+    if (res.status !== 200) {
+      return { err: res.data as any, code: res.status || 500 }
+    }
+    return { data: res.data }
+  } catch (err: any) {
+    if (err instanceof GaxiosError) {
+      const code = parseInt(err.code || '500')
+      return { err: err.message, code }
+    }
+    return { err: err, code: err?.status || 500 }
   }
 }
 
@@ -127,19 +143,23 @@ export const driveService = {
       auth: authClient
     })
     const [myDriveResp, driveListResp] = await Promise.all([
-      drive.files.get({
-        fileId: 'root',
-        fields: 'id, name'
-      }),
-      drive.drives.list({
-        pageSize: 100,
-        fields: '*'
-      })
+      wrapGaxios(
+        drive.files.get({
+          fileId: 'root',
+          fields: 'id, name'
+        })
+      ),
+      wrapGaxios(
+        drive.drives.list({
+          pageSize: 100,
+          fields: '*'
+        })
+      )
     ])
-    if (myDriveResp.status !== 200) {
-      return { err: myDriveResp.data as any, code: myDriveResp.status }
-    } else if (driveListResp.status !== 200) {
-      return { err: driveListResp.data as any, code: driveListResp.status }
+    if ('err' in myDriveResp) {
+      return myDriveResp
+    } else if ('err' in driveListResp) {
+      return driveListResp
     }
     return {
       data: {
