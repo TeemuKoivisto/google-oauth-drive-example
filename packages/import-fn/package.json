@@ -1,0 +1,38 @@
+{
+  "name": "@my-org/import-fn",
+  "version": "0.0.1",
+  "private": true,
+  "main": "index.js",
+  "module": "index.js",
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": "./index.js"
+    }
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "depl": "gcloud functions deploy drive-import --source ./dist --gen2 --runtime nodejs18 --trigger-http --allow-unauthenticated --region=europe-north1 --project drive-testi-1608222904858",
+    "desc": "gcloud functions describe drive-import --region=europe-north1",
+    "logs": "gcloud functions logs read drive-import --region=europe-north1",
+    "fns": "gcloud functions list",
+    "fns:set-region": "gcloud config set functions/region europe-north1",
+    "projects": "gcloud projects list",
+    "project:set": "gcloud config set project drive-testi-1608222904858",
+    "accounts": "gcloud auth list",
+    "build": "rimraf dist && rollup -c && cp package.json ./dist",
+    "watch": "rimraf dist && rollup -cw"
+  },
+  "devDependencies": {
+    "rimraf": "^4.1.2",
+    "rollup": "^3.7.5",
+    "rollup-plugin-typescript2": "^0.34.1",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.1.3"
+  }
+}
