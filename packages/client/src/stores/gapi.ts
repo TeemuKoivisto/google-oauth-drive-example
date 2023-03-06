@@ -7,7 +7,7 @@ import { persistedWritable } from './persist'
 import * as fileApi from '$api/file'
 
 import { RootFolderKind } from '@my-org/types'
-import type { Maybe, SharedDrive, DriveFile, FileRoot } from '@my-org/types'
+import type { Result, SharedDrive, DriveFile, FileRoot } from '@my-org/types'
 
 import { GOOGLE_CLIENT_ID } from '../config'
 
@@ -131,7 +131,7 @@ export const gapiActions = {
   //     console.error(err)
   //   }
   // },
-  async listInClient(): Promise<Maybe<DriveFile[]>> {
+  async listInClient(): Promise<Result<DriveFile[]>> {
     const cred = get(googleCredentials)
     const token = cred?.access_token || ''
     if (!token) {

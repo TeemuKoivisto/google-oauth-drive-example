@@ -5,6 +5,7 @@
     "format": "pnpm pretty && pnpm lint",
     "pretty": "prettier --write \"**/*.+(js|jsx|json|html|css|less|scss|ts|tsx|svelte|yml|yaml|md|graphql|mdx)\" .",
     "lint": "eslint --ignore-path .gitignore --fix --ext .js,.cjs,.ts,.tsx,.svelte,.css,.scss,.html .",
+    "deploy:fn": "pnpm --filter import-fn build && pnpm --filter import-fn depl",
     "utils": "concurrently --kill-others 'pnpm --filter types watch'",
     "api": "concurrently --kill-others 'pnpm --filter api watch' 'sleep 7 && pnpm --filter api dev'",
     "client": "concurrently --kill-others 'pnpm --filter client dev'",

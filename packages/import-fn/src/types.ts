@@ -1,7 +1,20 @@
-import { RootFolderKind } from '../src'
-import { Result } from './utils'
+export type Ok<T> = {
+  data: T
+}
+export type Err = {
+  err: string
+  code: number
+}
+// Based on Rust's Result https://doc.rust-lang.org/std/result/
+export type Result<T> = Ok<T> | Err
 
-export { RootFolderKind } from '../src'
+export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>
+
+export enum RootFolderKind {
+  my_drive = '#my_drive',
+  shared_drive = '#shared_drive',
+  shared_with_me = '#shared_with_me'
+}
 export interface FileRoot {
   isRoot: true
   my_drive: MyDrive | null

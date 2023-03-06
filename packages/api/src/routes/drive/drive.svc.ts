@@ -7,7 +7,7 @@ import path from 'path'
 
 import { config } from '$common/config'
 
-import { RootFolderKind, Maybe, DriveFile, ImportedFile, IListDrivesResponse } from '@my-org/types'
+import { RootFolderKind, Result, DriveFile, ImportedFile, IListDrivesResponse } from '@my-org/types'
 import { GaxiosError, GaxiosPromise, GaxiosResponse } from 'gaxios'
 import { Credentials, OAuth2Client } from 'google-auth-library'
 
@@ -38,7 +38,7 @@ async function loadSavedCredentialsIfExist() {
   }
 }
 
-async function wrapGaxios<T>(promise: GaxiosPromise<T>): Promise<Maybe<T>> {
+async function wrapGaxios<T>(promise: GaxiosPromise<T>): Promise<Result<T>> {
   try {
     const res = await promise
     if (res.status !== 200) {
@@ -74,7 +74,7 @@ async function fetchDriveFiles(
 async function download(
   drive: drive_v3.Drive,
   file: ImportedFile
-): Promise<Maybe<{ size: number }>> {
+): Promise<Result<{ size: number }>> {
   let resp
   try {
     if (file.fileExtension) {
@@ -137,7 +137,7 @@ export const driveService = {
     }
     return client
   },
-  async listDrives(authClient: Auth.OAuth2Client): Promise<Maybe<IListDrivesResponse>> {
+  async listDrives(authClient: Auth.OAuth2Client): Promise<Result<IListDrivesResponse>> {
     const drive = google.drive({
       version: 'v3',
       auth: authClient
@@ -181,7 +181,7 @@ export const driveService = {
   async listFiles(
     authClient: JSONClient | Auth.OAuth2Client,
     driveId?: string
-  ): Promise<Maybe<{ files: DriveFile[] }>> {
+  ): Promise<Result<{ files: DriveFile[] }>> {
     const drive = google.drive({
       version: 'v3',
       auth: authClient
@@ -228,7 +228,7 @@ export const driveService = {
   async downloadFiles(
     files: ImportedFile[],
     authClient: Auth.OAuth2Client
-  ): Promise<Maybe<{ size: number }>[]> {
+  ): Promise<Result<{ size: number }>[]> {
     const drive = google.drive({
       version: 'v3',
       auth: authClient,
