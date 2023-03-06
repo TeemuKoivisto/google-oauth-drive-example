@@ -1,7 +1,7 @@
 import { Auth, google } from 'googleapis'
 
-import { IListDrivesResponse, RootFolderKind } from './types'
-import { Result } from './types'
+import { IListDrivesResponse, RootFolderKind } from '@my-org/types'
+import { Result } from '@my-org/types'
 
 import { wrapGaxios } from './wrapGaxios'
 

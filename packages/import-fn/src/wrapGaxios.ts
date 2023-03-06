@@ -1,6 +1,6 @@
 import { GaxiosError, GaxiosPromise } from 'gaxios'
 
-import { Result } from './types'
+import { Result } from '@my-org/types'
 
 function sleep(ms: number): Promise<boolean> {
   return new Promise(resolve => {
