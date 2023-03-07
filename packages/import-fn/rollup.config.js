@@ -7,10 +7,10 @@ import pkg from './package.json' assert { type: 'json' }
 
 /**
  * Creates a new package.json with all the local workspace packages excluded
- * 
+ *
  * Since Google Cloud functions install their own dependencies, we have to do this manually as they will try
  * to install from NPM the packages, resulting in 404 and crashing the deployment.
- * @returns 
+ * @returns
  */
 async function makePackageJson() {
   const newPkg = Object.assign({}, pkg)

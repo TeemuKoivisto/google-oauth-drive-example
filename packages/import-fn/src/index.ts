@@ -1,7 +1,6 @@
 import functions from '@google-cloud/functions-framework'
 
-import { createClient } from './createOauthClient'
-import { fetchDrives } from './fetchDrives'
+import { createClient, fetchDrives } from '@my-org/google-drive'
 
 functions.http('helloHttp', async (req, res) => {
   const { token } = req.query

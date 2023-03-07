@@ -150,9 +150,27 @@ importers:
       typescript: 4.9.4
       vite: 4.0.4_sass@1.57.1
 
+  packages/google-drive:
+    specifiers:
+      '@my-org/types': workspace:*
+      gaxios: ^5.0.2
+      googleapis: ^111.0.0
+      rollup: ^3.7.5
+      rollup-plugin-typescript2: ^0.34.1
+      typescript: ^4.9.4
+    dependencies:
+      '@my-org/types': link:../types
+      gaxios: 5.0.2
+      googleapis: 111.0.0
+    devDependencies:
+      rollup: 3.11.0
+      rollup-plugin-typescript2: 0.34.1_yjrzni4zyr7xhg3xsvmmijxnvu
+      typescript: 4.9.4
+
   packages/import-fn:
     specifiers:
       '@google-cloud/functions-framework': ^3.1.3
+      '@my-org/google-drive': workspace:*
       '@my-org/types': workspace:*
       '@rollup/plugin-commonjs': ^24.0.1
       '@rollup/plugin-json': ^6.0.0
@@ -165,6 +183,7 @@ importers:
       typescript: ^4.9.4
     dependencies:
       '@google-cloud/functions-framework': 3.1.3
+      '@my-org/google-drive': link:../google-drive
       '@my-org/types': link:../types
       gaxios: 5.0.2
       googleapis: 111.0.0

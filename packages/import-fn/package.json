@@ -37,6 +37,7 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
+    "@my-org/google-drive": "workspace:*",
     "@my-org/types": "workspace:*",
     "@google-cloud/functions-framework": "^3.1.3",
     "gaxios": "^5.0.2",
