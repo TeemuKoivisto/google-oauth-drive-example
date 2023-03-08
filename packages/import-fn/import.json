@@ -1,0 +1,51 @@
+{
+  "token": "ya29.a0AVvZVspryuy6qvQRh6fMj4-uN8WEXEI4edz8RMpm5LPlAq9TgFybBr89IBaFaVjuOMRWJajVskWsE6_7Z0d41Thmz2IjKAqXOVddkwJ7XLp0nGuEh3gyY_4JbOgVYu5CknkO8OJ2gFxSSeHZh3vh24xsmbIsqCIaCgYKAUoSARMSFQGbdwaIWaG3VBeF5FS2DdmV31wOVA0166",
+  "files": [
+    {
+      "id": "1STjOK7IUHknayRGUPNV9DrYcTElNLxRO",
+      "name": "test_assets_1",
+      "size": 0
+    },
+    {
+      "id": "1dnZMV42LyX8saf3v1otVBklZkV7zbn_B",
+      "name": "test_assets_2",
+      "size": 0
+    },
+    {
+      "id": "1JZO2rxPaV5jfaWX77yG3ptNiciZfqacG",
+      "name": "drive_view.png",
+      "size": 98232,
+      "fileExtension": "png"
+    },
+    {
+      "id": "1FFlNL73KDD0bEoPno6NKGMgtuYjdS_58",
+      "name": "focal_logo.png",
+      "size": 51988,
+      "fileExtension": "png"
+    },
+    {
+      "id": "1Adk_gwm8XVYQR2q5vdbJRg4YtQhwkAcQ",
+      "name": "folder.png",
+      "size": 22807,
+      "fileExtension": "png"
+    },
+    {
+      "id": "1vQEIRFShmaGHD5dIh-TwDoPcjmYGdywd",
+      "name": "10279942.jpeg",
+      "size": 22233,
+      "fileExtension": "jpeg"
+    },
+    {
+      "id": "1hVtkYciKcl6G9esE9gGJaghVkEsNZPFF",
+      "name": "Pizigani_1367_Chart_10MB.jpeg",
+      "size": 10174706,
+      "fileExtension": "jpeg"
+    }
+  ],
+  "fetchRootFolders": [
+    {
+      "id": "shared-with-me",
+      "kind": "#shared_with_me"
+    }
+  ]
+}

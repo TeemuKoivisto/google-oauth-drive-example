@@ -1,4 +1,4 @@
-import { Auth, google } from 'googleapis'
+import { drive_v3, google } from 'googleapis'
 
 import { IListDrivesResponse, RootFolderKind } from '@my-org/types'
 import { Result } from '@my-org/types'
@@ -6,7 +6,7 @@ import { Result } from '@my-org/types'
 import { wrapGaxios } from './wrapGaxios'
 
 export async function fetchDrives(
-  authClient: Auth.OAuth2Client
+  authClient: drive_v3.Options['auth']
 ): Promise<Result<IListDrivesResponse>> {
   const drive = google.drive({
     version: 'v3',

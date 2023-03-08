@@ -72,9 +72,10 @@ export interface ImportedFile {
   size: number
   fileExtension?: string
 }
-export interface IImportFilesRequest {
+export interface ImportFilesRequest {
   token: string
   files: ImportedFile[]
+  fetchRootFolders: { id: string; kind: RootFolderKind }[]
 }
 export interface IImportFilesResponse {
   result: Result<{ size: number }>[]

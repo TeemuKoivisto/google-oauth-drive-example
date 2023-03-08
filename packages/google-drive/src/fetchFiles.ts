@@ -1,4 +1,4 @@
-import { Auth, drive_v3, google } from 'googleapis'
+import { drive_v3, google } from 'googleapis'
 
 import { DriveFile } from '@my-org/types'
 import { Result } from '@my-org/types'

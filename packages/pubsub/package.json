@@ -1,5 +1,5 @@
 {
-  "name": "@my-org/import-fn",
+  "name": "@my-org/pubsub",
   "version": "0.0.1",
   "private": true,
   "main": "index.cjs",
@@ -16,22 +16,16 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "depl": "gcloud functions deploy drive-import --source ./dist --gen2 --runtime nodejs18 --trigger-http --allow-unauthenticated --region=europe-north1 --project drive-testi-1608222904858",
-    "desc": "gcloud functions describe drive-import --region=europe-north1",
-    "logs": "gcloud functions logs read drive-import --region=europe-north1",
-    "fns": "gcloud functions list",
-    "fns:set-region": "gcloud config set functions/region europe-north1",
-    "projects": "gcloud projects list",
-    "project:set": "gcloud config set project drive-testi-1608222904858",
-    "accounts": "gcloud auth list",
     "build": "rimraf dist && rollup -c",
     "watch": "rimraf dist && rollup -cw",
-    "start": "env $(cat .env) functions-framework --target=helloHttp --signature-type=http --source=dist"
+    "pub": "env $(cat .env) nodemon --watch dist dist/index.js pub",
+    "sub": "env $(cat .env) nodemon --watch dist dist/index.js sub"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.1",
+    "nodemon": "^2.0.20",
     "rimraf": "^4.1.2",
     "rollup": "^3.7.5",
     "rollup-plugin-typescript2": "^0.34.1",
@@ -40,7 +34,6 @@
   "dependencies": {
     "@my-org/google-drive": "workspace:*",
     "@my-org/types": "workspace:*",
-    "@google-cloud/functions-framework": "^3.1.3",
     "@google-cloud/pubsub": "^3.4.0",
     "gaxios": "^5.0.2",
     "googleapis": "^111.0.0"
